@@ -1,0 +1,128 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.plastech.crm.mapper.SupplierMapper">
+	<resultMap id="BaseResultMap" type="com.plastech.crm.model.Supplier">
+		<!-- WARNING - @mbg.generated -->
+		<id column="suid" property="suid" jdbcType="BIGINT" />
+		<result column="status" property="status" jdbcType="INTEGER" />
+		<result column="su_name" property="suName" jdbcType="VARCHAR" />
+		<result column="su_full_name" property="fullName" jdbcType="VARCHAR" />
+		<result column="creator_id" property="creatorId" jdbcType="BIGINT" />
+		<result column="creator_time" property="creatorTime" jdbcType="TIMESTAMP" />
+		<result column="last_update_id" property="lastUpdateId"
+			jdbcType="BIGINT" />
+		<result column="last_update_time" property="lastUpdateTime"
+			jdbcType="TIMESTAMP" />
+		<result column="note" property="note" jdbcType="VARCHAR" />
+	</resultMap>
+	<resultMap id="BaseDetailResultMap"
+		type="com.plastech.crm.model.vo.SupplierBaseDetailView">
+		<id column="suid" property="suid" jdbcType="BIGINT" />
+		<result column="su_name" property="suName" jdbcType="VARCHAR" />
+		<result column="su_full_name" property="fullName" jdbcType="VARCHAR" />
+		<result column="su_address" property="suAddress" jdbcType="VARCHAR" />
+		<collection column="suid"
+			select="com.plastech.crm.mapper.LinkmanMapper.getSupplierLinkmanDetail"
+			property="linkmanList">
+		</collection>
+	</resultMap>
+	<resultMap id="SearchResultMap" type="com.plastech.crm.model.vo.SupplierView">
+		<id column="suid" property="suid" jdbcType="BIGINT" />
+		<result column="suName" property="suName" jdbcType="VARCHAR" />
+		<result column="companyName" property="companyName" jdbcType="VARCHAR" />
+		<result column="fullName" property="fullName" jdbcType="VARCHAR" />
+		<result column="address" property="address" jdbcType="VARCHAR" />
+		<result column="status" property="status" jdbcType="INTEGER" />
+		<collection column="suid"
+			select="com.plastech.crm.mapper.LinkmanMapper.getSupplierLinkmanCountBySuid"
+			property="linkmanCount">
+		</collection>
+	</resultMap>
+
+	<select id="searchSupplierList" parameterType="map" resultMap="SearchResultMap">
+		select
+		su.suid,
+		su.status,
+		su.su_name as suName,
+		su.su_full_name as
+		fullName,
+		su.su_address as address
+		from supplier su
+		where
+		su.status=0
+		<if test="searchkey!=null">
+			and su.su_name like #{searchkey}
+		</if>
+	  order by CONVERT(	su.su_name USING gbk) asc 
+	</select>
+	
+	<select id="getSuppliersContractList"  resultMap="SearchResultMap">
+		select
+		su.suid,
+		su.status,
+		su.su_name as suName,
+		su.su_full_name as
+		fullName
+		from supplier su
+		where
+		su.status=0
+	   ORDER BY CONVERT(	su.su_name USING gbk) asc
+	</select>
+
+	<select id="selectSuname" resultMap="BaseResultMap">
+		select *
+		from supplier
+		where
+		su_name = #{suName}
+		limit 1
+	</select>
+	<select id="getSupplierBaseDetail" resultMap="BaseDetailResultMap">
+		SELECT
+		su.suid,
+		su.su_name,
+		su.su_address,
+		su.su_full_name
+		FROM
+		supplier su
+		WHERE
+		su.suid =
+		#{suid}
+		and
+		su.status=0
+	</select>
+	<select id="checkInitSupplierInfo" resultMap="BaseResultMap">
+		SELECT
+		*
+		FROM
+		supplier su
+		WHERE
+		su.su_name = #{name}
+		AND su.su_full_name =#{fullName}
+		AND su.su_address = #{address}
+		AND su.`status` = 0
+		LIMIT 1
+	</select>
+	<select id="getExportSupplierInfoList"
+		resultType="com.plastech.crm.model.vo.ExportSupplierAndGroupsView">
+		SELECT
+		s.su_name AS name,
+		s.su_full_name AS fullName,
+		s.su_address as
+		address,
+		l.name lName,
+		l.lk_position as position,
+		l.lk_phone as phone,
+		l.lk_mail as mail,
+		l.lk_tags tags,
+		l.note
+		FROM
+		supplier s
+		left JOIN
+		middle_supplier_linkman m ON m.suid = s.suid
+		left
+		JOIN linkman l on
+		l.lkid=m.lkid and l.status=0
+		where s.`status`=0
+	
+	</select>
+</mapper>

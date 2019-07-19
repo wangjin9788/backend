@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.plastech.crm.mapper.RolePermissionMapper">
+	<resultMap id="BaseResultMap" type="com.plastech.crm.model.RolePermission">
+		<!-- WARNING - @mbg.generated -->
+		<id column="roleid" property="roleid" jdbcType="BIGINT" />
+		<id column="pmid" property="pmid" jdbcType="BIGINT" />
+		<result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
+		<result column="note" property="note" jdbcType="VARCHAR" />
+	</resultMap>
+
+	<select id="getPermissionViewByRoleid" parameterType="java.lang.Long"
+	  	resultType="com.plastech.crm.model.vo.ModuleMenuPermissionView">
+	  	select
+		IFNULL(pp.code,"") as moduleCode,pp.title as moduleName,
+		IFNULL(ps.code,"") as menuCode,ps.title as menuName,
+		per.name as permissionName,per.pmid,
+		IFNULL(kk.selected,0) as selected
+		from
+			(select t1.*,t2.sort as topsort
+			from menu t1 
+			inner join menu t2 on t1.parent_code=t2.code 
+			where t1.type=1
+			) pp
+		inner join menu ps on pp.code=ps.parent_code
+		inner join permission per on per.mid=ps.mid
+		left join
+		(
+			select per.pmid,1 as selected 
+			from role r
+			inner join role_permission rp on rp.roleid=r.roleid
+			inner join permission per on per.pmid=rp.pmid
+			where r.roleid=#{roleid}
+		) kk on kk.pmid=per.pmid  
+		where ps.type=2
+		order by pp.topsort,pp.sort,ps.sort,per.mark DESC
+	</select>
+	
+	<delete id="deleteByRoleid" parameterType="java.lang.Long">
+	 	delete 
+	 	from role_permission
+	 	where roleid=#{roleid}
+	</delete>
+
+	<select id="getAllAuthorities" resultType="com.plastech.crm.model.vo.Authority">
+	  	select 
+		concat(k.module,k.inface) as uri,
+		any_value(k.method),
+		any_value(k.permissive) as tokenPermissive,
+		IFNULL(GROUP_CONCAT(k.code),"ALL_FORBIDDEN") as roles 
+		from (	
+			select distinct	pu.module,pu.inface,r.code,pu.permissive,pu.method
+	  		from 
+			purl pu
+			inner join permission_purl pp on pp.puid=pu.puid
+			left join role_permission rp on rp.pmid=pp.pmid
+			left join role r on r.roleid=rp.roleid
+		) k
+		group by uri
+	</select>
+	
+	<select id="getAuthorityByUrl" resultType="com.plastech.crm.model.vo.Authority">
+	  	select 
+		concat(k.module,k.inface) as uri,
+		any_value(k.method),
+		any_value(k.permissive) as tokenPermissive,
+		IFNULL(GROUP_CONCAT(k.code),"ALL_FORBIDDEN") as roles 
+		from (	
+			select distinct	pu.module,pu.inface,r.code,pu.permissive,pu.method
+	  		from 
+			purl pu
+			inner join permission_purl pp on pp.puid=pu.puid
+			left join role_permission rp on rp.pmid=pp.pmid
+			left join role r on r.roleid=rp.roleid
+			where concat(pu.module,pu.inface)=#{loginUrl}
+		) k
+		group by uri
+		limit 1
+	</select>
+</mapper>

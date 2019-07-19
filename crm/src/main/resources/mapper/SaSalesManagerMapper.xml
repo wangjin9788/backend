@@ -1,0 +1,341 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.plastech.crm.mapper.SaSalesManagerMapper">
+	<resultMap id="BaseResultMap" type="com.plastech.crm.model.SaSalesManager">
+		<!-- WARNING - @mbg.generated -->
+		<id column="smid" property="smid" jdbcType="BIGINT" />
+		<result column="uid" property="uid" jdbcType="BIGINT" />
+		<result column="year" property="year" jdbcType="CHAR" />
+		<result column="month" property="month" jdbcType="CHAR" />
+		<result column="sales_total" property="salesTotal" jdbcType="DOUBLE" />
+		<result column="group_count" property="groupCount" jdbcType="INTEGER" />
+		<result column="commodity_count" property="commodityCount"
+			jdbcType="INTEGER" />
+		<result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
+		<result column="last_update_time" property="lastUpdateTime"
+			jdbcType="TIMESTAMP" />
+		<result column="note" property="note" jdbcType="VARCHAR" />
+	</resultMap>
+
+	<select id="selectSalesManagerAnalysisDataByYearAndMonthWithPreviousData"
+		resultType="com.plastech.crm.model.vo.SalesManagerAnalysisYearStData">
+		SELECT
+		any_value(k.uid) as uid,
+		any_value(k.uname) as uname,
+		any_value(if(k.salesTotal,k.salesTotal,0))AS salesTotal ,
+		any_value(k.groupCount)AS groupCount,
+		any_value(k.commodityCount)AS
+		commodityCount,
+		any_value(IF(k.previousSalesTotal,k.previousSalesTotal,0))AS
+		previousSalesTotal,
+		any_value(k.year) as year
+		FROM
+		(
+		SELECT
+		ssm.uid,
+		u.uname,
+		ssm.sales_total AS salesTotal,
+		ssm.group_count AS groupCount,
+		ssm.commodity_count AS commodityCount,
+		sm.sales_total AS
+		previousSalesTotal,
+		#{year} AS YEAR
+		FROM
+		sa_sales_manager ssm
+		LEFT JOIN
+		user u ON u.uid = ssm.uid
+		LEFT JOIN sa_sales_manager sm
+		ON sm. YEAR =
+		#{pre_year}
+		AND sm. MONTH = #{month}
+		AND sm.uid = ssm.uid
+		WHERE
+		ssm. YEAR
+		= #{year}
+		AND ssm. MONTH =#{month}
+		UNION ALL
+		SELECT
+		ssm.uid,
+		u.uname,
+		0 AS
+		salestotal,
+		0 AS groupCount,
+		0 AS commodityCount,
+		ssm.sales_total AS
+		previousSalesTotal,
+		#{pre_year} AS YEAR
+		FROM
+		sa_sales_manager ssm
+		LEFT
+		JOIN user u ON u.uid = ssm.uid
+		WHERE
+		ssm. YEAR = #{pre_year}
+		AND MONTH =
+		#{month}
+		) AS k
+		GROUP BY
+		uid
+		ORDER BY
+		salesTotal DESC
+	</select>
+
+	<select id="getManagerSalesAnalysisFromContractData"
+		resultMap="BaseResultMap">
+		SELECT
+		u.uid,
+		month(cg.cg_shipmt_date) as month,
+		any_value(YEAR
+		(cg.cg_shipmt_date))
+		as year,
+		SUM(cg.cg_sales_volume)as sales_total,
+		COUNT(DISTINCT g.ctid)as
+		commodity_count,
+		COUNT(DISTINCT c.gid) as
+		group_count
+		FROM
+		contract c
+		INNER JOIN `user` u ON u.uid = c.uid
+		INNER JOIN
+		contract_grade cg ON
+		cg.coid = c.coid
+		INNER JOIN grade g ON g.geid =
+		cg.geid
+		WHERE
+		c.status = 0
+		and u.ustatus=0
+		and cg.cg_status=0
+		AND u.roleid = 2
+		AND YEAR (cg.cg_shipmt_date) =
+		#{year}
+		and
+		month(cg.cg_shipmt_date)=#{month}
+		<if test="uid!=null">
+		and u.uid=#{uid}
+		</if>
+		GROUP BY
+		u.uid
+		,month(cg.cg_shipmt_date)
+	</select>
+
+	<select id="getManagerSalesAnalysisFromContractDataForYear"
+		parameterType="java.lang.String" resultMap="BaseResultMap">
+		SELECT
+		u.uid,
+		13 as month,
+		any_value(YEAR (cg.cg_shipmt_date)) as year,
+		SUM(cg.cg_sales_volume)as
+		sales_total,
+		COUNT(DISTINCT g.ctid)as
+		commodity_count,
+		COUNT(DISTINCT
+		c.gid) as group_count
+		FROM
+		contract c
+		INNER JOIN `user` u ON u.uid =
+		c.uid
+		INNER JOIN contract_grade cg ON
+		cg.coid = c.coid
+		INNER JOIN grade
+		g ON g.geid = cg.geid
+		WHERE
+		c.status = 0
+		and u.ustatus=0
+		and cg.cg_status=0
+		AND u.roleid = 2
+		AND YEAR
+		(cg.cg_shipmt_date) = #{year}
+		<if test="uid!=null">
+			and u.uid=#{uid}
+		</if>
+		GROUP BY
+		u.uid
+	</select>
+
+	<select id="selectByUidAndYearAndMonth" resultMap="BaseResultMap">
+		select *
+		from
+		sa_sales_manager
+		where uid=#{uid} and year=#{year} and month=#{month}
+		limit 1
+	</select>
+
+	<select id="selectAnyOne" resultMap="BaseResultMap">
+		select *
+		from
+		sa_sales_manager
+		limit 1
+	</select>
+
+	<select id="selectSingleSalesManagerAnalySisDetailOfSaleTotal"
+		resultType="com.plastech.crm.model.vo.SalesAnalysisDataView">
+		select
+		concat('0',k1.month) as
+		month,concat(k1.year,'-',k1.month) as yearMonth,
+		k1.sales_total as
+		salesTotal,k1.group_count as groupCount,
+		k1.commodity_count as
+		commodityCount
+		from
+		(
+		select ssm.*
+		from
+		sa_sales_manager ssm
+		where
+		ssm.uid=#{uid} and
+		ssm.year=#{year} and
+		ssm.month!=13
+		) k1
+		order by
+		k1.month
+	</select>
+
+	<select id="selectSingleSalesManagerAnalysisOfCustomerData"
+		resultType="com.plastech.crm.model.vo.SalesManagerAnalysisOfCustomerData">
+		select
+		#{year} as year,#{uid} as salesmanUid,co.gid,
+		g.name
+		as
+		groupsName,sum(cg.cg_sales_volume) as totalQty
+		from
+		contract co
+		inner
+		join contract_grade cg on co.coid=cg.coid
+		left join groups g
+		on
+		g.gid=co.gid
+		where co.status=0 and cg.cg_status=0
+		and
+		date_format(cg.cg_shipmt_date,'%Y')=#{year}
+		and co.uid=#{uid}
+		<if test="searchKey!=null">
+			and g.name like #{searchKey}
+		</if>
+		group by
+		co.gid
+		order by totalQty DESC
+	</select>
+	<select id="selectSalseCustomerPurchases" resultType="com.plastech.crm.model.vo.SalesAnalysisDataView">
+		select
+		concat('0',month(cg.cg_shipmt_date)) as month,
+		any_value(concat(year(cg.cg_shipmt_date),'-',month(cg.cg_shipmt_date)))
+		as yearMonth,
+		any_value(sum(cg.cg_sales_volume)) as salesTotal
+		from
+		contract co
+		INNER JOIN
+		contract_grade cg ON cg.coid = co.coid
+		INNER JOIN
+		contract_purchase cp
+		on cp.cgid=cg.cgid
+		where co.gid=#{gid}
+		and
+		year(cg.cg_shipmt_date)=#{year} and co.uid=#{uid}
+		GROUP BY
+		month
+		ORDER BY
+		month asc
+	</select>
+
+	<select id="searchSalseCommodityName" parameterType="map"
+		resultType="com.plastech.crm.model.vo.SalesManagerAnalysisOfCustomerData">
+		SELECT
+		#{year} as year,
+		co.uid as salesmanUid,
+		ct.ctid as ctid,
+		mf.mfid as
+		mfid,
+		ct.`name` as ctName,
+		mf.`name` as mfName,
+		SUM(cg.cg_sales_volume)
+		as totalQty
+		FROM
+		contract co
+		INNER JOIN
+		contract_grade cg ON cg.coid =
+		co.coid
+		INNER
+		JOIN contract_purchase cp
+		on cp.cgid=cg.cgid
+		INNER JOIN
+		grade ge ON
+		ge.geid = cg.geid
+		LEFT JOIN
+		manufacturer mf ON mf.mfid =
+		ge.mfid
+		LEFT
+		JOIN commodity ct ON ct.ctid =
+		ge.ctid
+		WHERE
+		co.uid = #{uid}
+		AND YEAR
+		(cg.cg_shipmt_date) = #{year}
+		<if test="type==1 ">
+			<if test="searchkey!=null">
+				and mf.`name` like #{searchkey}
+			</if>
+		</if>
+		<if test="type==2">
+			<if test="searchkey!=null">
+				and ct.`name` like #{searchkey}
+			</if>
+		</if>
+		and co.status=0 and cg.cg_status=0
+		GROUP BY ct.ctid,mf.mfid,co.uid
+	</select>
+	<select id="completeCommodityDetailedMonthlyData" resultType="com.plastech.crm.model.vo.SalesAnalysisDataView">
+		SELECT
+		any_value(concat('0',MONTH(cg.cg_shipmt_date))) as month,
+		any_value(concat(year(cg.cg_shipmt_date),'-',MONTH(cg.cg_shipmt_date)))
+		as yearMonth,
+		any_value(sum(cg.cg_sales_volume)) as salesTotal
+		FROM
+		contract
+		co
+		INNER JOIN contract_grade cg ON cg.coid = co.coid
+		INNER JOIN
+		contract_purchase cp on cp.cgid=cg.cgid
+		INNER JOIN grade ge ON ge.geid
+		= cg.geid
+		LEFT JOIN manufacturer mf ON mf.mfid = ge.mfid
+		LEFT JOIN
+		commodity ct ON ct.ctid = ge.ctid
+		WHERE
+		uid = #{uid}
+		AND YEAR
+		(cg.cg_shipmt_date) = #{year}
+		and ct.ctid=#{ctid} and mf.mfid=#{mfid}
+		GROUP BY MONTH(cg.cg_shipmt_date)
+		ORDER BY MONTH(cg.cg_shipmt_date) asc
+	</select>
+	<delete id="deleteSaSalesManagerByYearAndMonth">
+		delete from sa_sales_manager where year=#{year} and
+		month=#{month} and uid=#{uid}
+	</delete>
+
+	<delete id="deleteSaSalesManagerInexistenceData">
+		delete
+		FROM
+		sa_sales_manager
+		WHERE
+		smid IN (
+		SELECT
+		b.smid
+		FROM
+		(
+		SELECT
+		smid
+		FROM
+		sa_sales_manager
+		WHERE
+		year = #{year}
+		AND month = #{month}
+		AND uid not
+		in
+		<foreach collection="list" item="uid" open="(" close=")"
+			separator=",">
+			#{uid}
+		</foreach>
+		) AS b
+		)
+	</delete>
+</mapper>

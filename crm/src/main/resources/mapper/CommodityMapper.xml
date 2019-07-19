@@ -1,0 +1,195 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.plastech.crm.mapper.CommodityMapper">
+	<resultMap id="BaseResultMap" type="com.plastech.crm.model.Commodity">
+		<id column="ctid" property="ctid" jdbcType="BIGINT" />
+		<result column="name" property="name" jdbcType="VARCHAR" />
+		<result column="status" property="status" jdbcType="INTEGER" />
+		<result column="creator_id" property="creatorId" jdbcType="BIGINT" />
+		<result column="creator_time" property="creatorTime" jdbcType="TIMESTAMP" />
+		<result column="note" property="note" jdbcType="VARCHAR" />
+	</resultMap>
+	<resultMap id="CommodityResultMap" type="com.plastech.crm.model.vo.CommodityView">
+		<id column="ctid" property="ctid" jdbcType="BIGINT" />
+		<result column="name" property="name" jdbcType="VARCHAR" />
+		<result column="creator_time" property="creatorTime" jdbcType="TIMESTAMP" />
+		<collection column="{uid=creator_id}"
+			select="com.plastech.crm.mapper.UserMapper.selectUserNameByUid"
+			property="creatorNmae"></collection>
+	</resultMap>
+	<select id="searchCommodity" resultMap="CommodityResultMap">
+		select c.ctid,
+		c.name,
+		c.creator_time,
+		c.creator_id
+		from commodity
+		c
+		where
+		1=1
+		<if test="searchkey != null">
+			and c.name like #{searchkey}
+		</if>
+		and c.status=0
+		ORDER BY c.creator_time desc
+	</select>
+	<select id="getCommodityChooseList" resultMap="CommodityResultMap">
+		select c.ctid,
+		c.name,
+		c.creator_time,
+		c.creator_id
+		from commodity
+		c
+		where
+	    c.status=0
+		ORDER BY c.name asc
+	</select>
+
+	<select id="selectCommodityName" resultType="String">
+		select
+		c.name
+		from commodity
+		c
+		where 1=1
+		<if test="name!=null">
+			and c.name = #{name}
+		</if>
+		and c.status=0
+	</select>
+	<select id="selectCommodityByCtid" resultType="String">
+		select
+		c.name
+		from
+		commodity c
+		where c.ctid = #{ctId}
+		and c.status=0
+	</select>
+
+	<select id="selectByCommodityName" resultMap="BaseResultMap">
+		select *
+		from
+		commodity
+		where name = #{name} and status=0
+		limit 1
+	</select>
+
+	<select id="getExportCommodityInfoList" resultType="com.plastech.crm.model.parameter.ExportDataInfoView">
+		SELECT
+		any_value (ge.ctid) AS ctid,
+		any_value (ge.mfid) AS mfid,
+		any_value (g.gid) AS gid,
+		any_value (ct. NAME) AS ctName,
+		any_value (mf.
+		NAME) AS
+		mfName,
+		g.`name` AS gName,
+		any_value (sum(cg.cg_sales_volume))
+		AS volume,
+		any_value (YEAR(cg.cg_shipmt_date)) as year,
+		MONTH
+		(cg.cg_shipmt_date)
+		as month
+		FROM
+		grade ge
+		INNER JOIN commodity ct ON
+		ct.ctid = ge.ctid
+		INNER JOIN manufacturer mf ON
+		mf.mfid = ge.mfid
+		INNER
+		JOIN contract_grade cg ON cg.geid = ge.geid
+		INNER JOIN contract co ON
+		co.coid = cg.coid
+		INNER JOIN groups g ON
+		g.gid = co.gid
+		WHERE
+		ge.status=0
+		and ct.`status` = 0 AND co.status = 0
+		and mf.status=0 and
+		cg.cg_status=0
+		and g.status =0 AND YEAR
+		(cg.cg_shipmt_date) =#{year}
+		and
+		ge.ctid
+		in
+		<foreach collection="list" item="ctid" open="(" close=")"
+			separator=",">
+			#{ctid}
+		</foreach>
+		GROUP BY
+		ge.ctid,ge.mfid,g.gid,
+		MONTH (cg.cg_shipmt_date)
+	</select>
+	<select id="getExportSalesManagerInfoList" resultType="com.plastech.crm.model.parameter.ExportDataInfoView">
+		SELECT
+		g.gid,
+		ct.ctid,
+		mf.mfid,
+		g.`name` as gName,
+		ct.`name` as ctName,
+		mf.`name`
+		as mfName,
+		month(cg.cg_shipmt_date) as month,
+		SUM(cg.cg_sales_volume) as
+		volume
+		FROM
+		user u
+		INNER JOIN contract co on co.uid=u.uid
+		INNER JOIN
+		groups g on g.gid=co.gid
+		INNER JOIN contract_grade cg on
+		cg.coid=co.coid
+		INNER JOIN grade ge on ge.geid=cg.geid
+		INNER JOIN
+		commodity ct on ct.ctid=ge.ctid
+		INNER JOIN manufacturer mf on
+		mf.mfid=ge.mfid
+		where
+		u.ustatus=0 and co.`status`=0 and
+		cg.cg_status=0 and g.status = 0 and ct.status=0
+		and mf.status=0
+		and
+		year(cg.cg_shipmt_date)=#{year}
+		and
+		u.uid =#{uid}
+		GROUP BY
+		ct.ctid,mf.mfid,g.gid,month(cg.cg_shipmt_date)
+	</select>
+	<select id="getExportManufacturerInfoList" resultType="com.plastech.crm.model.parameter.ExportDataInfoView">
+		SELECT
+		g.gid,
+		ct.ctid,
+		mf.mfid,
+		g.`name` AS gName,
+		ct.`name` AS ctName,
+		mf.`name` AS mfName,
+		MONTH (cg.cg_shipmt_date) AS MONTH,
+		SUM(cg.cg_sales_volume) AS volume
+		FROM
+		contract co
+		INNER JOIN
+		contract_grade cg ON cg.coid = co.coid
+		INNER JOIN grade ge ON ge.geid =
+		cg.geid
+		INNER JOIN manufacturer mf ON mf.mfid = ge.mfid
+		LEFT JOIN groups
+		g ON g.gid = co.gid
+		LEFT JOIN commodity ct ON ct.ctid = ge.ctid
+		WHERE
+		co.status=0 and cg.cg_status=0 and mf.status=0 and g.status=0 and
+		ct.status=0 and
+		YEAR (cg.cg_shipmt_date) = #{year}
+		AND ge.mfid in
+		<foreach collection="list" item="mfid" open="(" close=")"
+			separator=",">
+			#{mfid}
+		</foreach>
+		GROUP BY ct.ctid,mf.mfid,g.gid,month(cg.cg_shipmt_date)
+	</select>
+	<select id="getCommodityIdList" resultType="Long">
+		select ct.ctid from
+		commodity ct
+		INNER JOIN grade ge on ge.ctid=ct.ctid
+		INNER JOIN
+		contract_grade cg on cg.geid=ge.geid
+		GROUP BY ct.ctid
+	</select>
+</mapper>

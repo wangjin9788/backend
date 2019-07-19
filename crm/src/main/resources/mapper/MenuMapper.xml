@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.plastech.crm.mapper.MenuMapper" >
+  <resultMap id="BaseResultMap" type="com.plastech.crm.model.Menu" >
+    <!--
+      WARNING - @mbg.generated
+    -->
+    <id column="mid" property="mid" jdbcType="BIGINT" />
+    <result column="type" property="type" jdbcType="INTEGER" />
+    <result column="parent_code" property="parentCode" jdbcType="VARCHAR" />
+    <result column="code" property="code" jdbcType="VARCHAR" />
+    <result column="title" property="title" jdbcType="VARCHAR" />
+    <result column="icon" property="icon" jdbcType="VARCHAR" />
+    <result column="url" property="url" jdbcType="VARCHAR" />
+    <result column="sort" property="sort" jdbcType="BIGINT" />
+    <result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
+    <result column="update_time" property="updateTime" jdbcType="TIMESTAMP" />
+    <result column="note" property="note" jdbcType="VARCHAR" />
+  </resultMap>
+  
+  <select id="getUserThirdLevelMenusByRoleidForShiro" resultType="com.plastech.crm.model.vo.MenuInfo"
+  	parameterType="java.lang.Long">
+	select
+	pc.parent_code as parentCode,
+	pc.code,pc.title,pc.url as ikey,pc.type,pc.icon,pc.code,
+	case when locate("manage",tt.mark)>0  then 1 else 0 end as manager,
+	case when locate("export",tt.mark)>0  then 1 else 0 end as export
+	from menu pc
+	left join menu pp on pc.parent_code=pp.code	
+	inner join (
+		select
+	    k.mid,group_concat(k.mark) as mark
+		from (
+			select per.pmid,per.mid,per.mark  from
+		    permission per 
+			inner join role_permission rp on rp.pmid=per.pmid
+			where rp.roleid=#{roleid}
+			order by per.mark
+			limit 999999
+		) k	group by k.mid
+	) tt on tt.mid = pc.mid 
+	where pc.type= 2
+	order by pp.sort,pc.sort
+  </select>
+
+  <select id="getAllFirstAndSecondLevelMenusForShiro" resultType="com.plastech.crm.model.vo.MenuInfo"
+  	parameterType="java.lang.Long">
+	select
+	pc.parent_code as parentCode,
+	pc.code,pc.title,pc.url as ikey,pc.type,pc.icon,pc.code,
+    0 as manager,0 as export
+	from menu pc
+	left join menu pp on pc.parent_code=pp.code	
+	where pc.type= 0 or pc.type=1
+	order by pp.sort,pc.sort
+  </select>
+  
+</mapper>

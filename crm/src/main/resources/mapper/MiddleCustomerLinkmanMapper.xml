@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.plastech.crm.mapper.MiddleCustomerLinkmanMapper">
+	<resultMap id="BaseResultMap" type="com.plastech.crm.model.MiddleCustomerLinkman">
+		<!-- WARNING - @mbg.generated -->
+		<id column="cuid" property="cuid" jdbcType="BIGINT" />
+		<id column="lkid" property="lkid" jdbcType="INTEGER" />
+		<result column="creator_time" property="creatorTime" jdbcType="TIMESTAMP" />
+		<result column="note" property="note" jdbcType="VARCHAR" />
+	</resultMap>
+	<delete id="deleteCustomerLinkmanInfoByCuid" parameterType="Long">
+		DELETE mcl,lk
+		FROM
+		middle_customer_linkman mcl
+		INNER JOIN linkman lk ON lk.lkid = mcl.lkid
+		WHERE
+		mcl.cuid =#{cuid}
+	</delete>
+</mapper>

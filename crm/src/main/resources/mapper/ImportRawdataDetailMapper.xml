@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.plastech.crm.mapper.ImportRawdataDetailMapper">
+	<resultMap id="BaseResultMap" type="com.plastech.crm.model.ImportRawdataDetail">
+		<id column="irdid" jdbcType="BIGINT" property="irdid" />
+		<result column="irid" jdbcType="BIGINT" property="irid" />
+		<result column="type" jdbcType="INTEGER" property="type" />
+		<result column="groups" jdbcType="VARCHAR" property="groups" />
+		<result column="customer" jdbcType="VARCHAR" property="customer" />
+		<result column="cont_no" jdbcType="VARCHAR" property="contNo" />
+		<result column="grade" jdbcType="VARCHAR" property="grade" />
+		<result column="manufacturer" jdbcType="VARCHAR" property="manufacturer" />
+		<result column="commodity" jdbcType="VARCHAR" property="commodity" />
+		<result column="qty_mt" jdbcType="VARCHAR" property="qtyMt" />
+		<result column="shipmt" jdbcType="VARCHAR" property="shipmt" />
+		<result column="price_mt" jdbcType="VARCHAR" property="priceMt" />
+		<result column="total" jdbcType="VARCHAR" property="total" />
+		<result column="term" jdbcType="VARCHAR" property="term" />
+		<result column="price_mt2" jdbcType="VARCHAR" property="priceMt2" />
+		<result column="total2" jdbcType="VARCHAR" property="total2" />
+		<result column="term2" jdbcType="VARCHAR" property="term2" />
+		<result column="term3" jdbcType="VARCHAR" property="term3" />
+		<result column="term4" jdbcType="VARCHAR" property="term4" />
+		<result column="supplier" jdbcType="VARCHAR" property="supplier" />
+		<result column="profit" jdbcType="VARCHAR" property="profit" />
+		<result column="logistics_fee" jdbcType="VARCHAR" property="logisticsFee" />
+		<result column="logistics_fee2" jdbcType="VARCHAR" property="logisticsFee2" />
+		<result column="net_profit" jdbcType="VARCHAR" property="netProfit" />
+		<result column="salse_manager" jdbcType="VARCHAR" property="salseManager" />
+		<result column="create_time" jdbcType="TIMESTAMP" property="createTime" />
+		<result column="note" jdbcType="VARCHAR" property="note" />
+	</resultMap>
+
+	<resultMap id="ExplainDataResultMap"
+		type="com.plastech.crm.model.vo.ImportRawdataExplainResultData">
+		<id column="irdid" property="irdid" jdbcType="BIGINT" />
+		<result column="irid" property="irid" jdbcType="BIGINT" />
+		<result column="type" property="type" jdbcType="INTEGER" />
+		<result column="groups" jdbcType="VARCHAR" property="groups" />
+		<result column="term3" jdbcType="VARCHAR" property="term3" />
+		<result column="customer" property="customer" jdbcType="VARCHAR" />
+		<result column="cont_no" property="contNo" jdbcType="VARCHAR" />
+		<result column="grade" property="grade" jdbcType="VARCHAR" />
+		<result column="manufacturer" property="manufacturer" jdbcType="VARCHAR" />
+		<result column="commodity" property="commodity" jdbcType="VARCHAR" />
+		<result column="qty_mt" property="qtyMt" jdbcType="VARCHAR" />
+		<result column="shipmt" property="shipmt" jdbcType="VARCHAR" />
+		<result column="price_mt" property="priceMt" jdbcType="VARCHAR" />
+		<result column="total" property="total" jdbcType="VARCHAR" />
+		<result column="term" property="term" jdbcType="VARCHAR" />
+		<result column="price_mt2" property="priceMt2" jdbcType="VARCHAR" />
+		<result column="total2" property="total2" jdbcType="VARCHAR" />
+		<result column="term2" jdbcType="VARCHAR" property="term2" />
+		<result column="term3" jdbcType="VARCHAR" property="term3" />
+		<result column="term4" jdbcType="VARCHAR" property="term4" />
+		<result column="supplier" property="supplier" jdbcType="VARCHAR" />
+		<result column="profit" property="profit" jdbcType="VARCHAR" />
+		<result column="comm_out" property="commOut" jdbcType="VARCHAR" />
+		<result column="logistics_fee" property="logisticsFee"
+			jdbcType="VARCHAR" />
+		<result column="logistics_fee2" property="logisticsFee2"
+			jdbcType="VARCHAR" />
+		<result column="net_profit" property="netProfit" jdbcType="VARCHAR" />
+		<result column="salse_manager" property="salseManager"
+			jdbcType="VARCHAR" />
+		<result column="signing_time" property="signingTime" jdbcType="VARCHAR" />
+		<result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
+		<result column="note" property="note" jdbcType="VARCHAR" />
+	</resultMap>
+
+	<select id="selectCountByIridAndType" resultType="java.lang.Long">
+		select count(1)
+		from import_rawdata_detail
+		where irid=#{irid} and type=#{type}
+	</select>
+
+	<select id="getExplainResultDataList" resultMap="ExplainDataResultMap">
+		select *
+		from
+		import_rawdata_detail
+		where irid=#{irid}
+		<if test="searchtype!=5">
+			and type=#{searchtype}
+		</if>
+	</select>
+	<select id="getExplainResultDataListOfAddOrUpdate" resultMap="ExplainDataResultMap">
+		select *
+		from import_rawdata_detail
+		where irid=#{irid} and (type=0 or
+		type=1)
+	</select>
+
+	<select id="updateNoteByIrid">
+		update import_rawdata_detail
+		set note=#{note}
+		where
+		irid=#{irid}
+	</select>
+	<update id="updateImportDetailStatus">
+		update import_rawdata_detail
+		set type=#{type}
+		where
+		irdid=#{irdid}
+	</update>
+	<select id="getImportDetailStatus" resultType="Boolean">
+		select COUNT(*)
+		from import_rawdata where `status`=2
+	</select>
+</mapper>

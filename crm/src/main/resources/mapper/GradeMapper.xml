@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.plastech.crm.mapper.GradeMapper">
+	<resultMap id="BaseResultMap" type="com.plastech.crm.model.Grade">
+		<!-- WARNING - @mbg.generated -->
+		<id column="geid" property="geid" jdbcType="BIGINT" />
+		<result column="ctid" property="ctid" jdbcType="BIGINT" />
+		<result column="mfid" property="mfid" jdbcType="BIGINT" />
+		<result column="grade_number" property="gradeNumber" jdbcType="VARCHAR" />
+		<result column="statut" property="status" jdbcType="INTEGER" />
+		<result column="creator_id" property="creatorId" jdbcType="BIGINT" />
+		<result column="creator_time" property="creatorTime" jdbcType="TIMESTAMP" />
+		<result column="last_update_id" property="lastUpdateId"
+			jdbcType="BIGINT" />
+		<result column="last_update_time" property="lastUpdateTime"
+			jdbcType="TIMESTAMP" />
+		<result column="note" property="note" jdbcType="VARCHAR" />
+	</resultMap>
+
+	<resultMap id="GradeResultMap" type="com.plastech.crm.model.vo.GradeView">
+		<id column="geid" property="geId" jdbcType="BIGINT" />
+		<result column="ctId" property="ctId" jdbcType="BIGINT" />
+		<result column="mfId" property="mfId" jdbcType="BIGINT" />
+		<result column="grade_number" property="gradeNumber" jdbcType="VARCHAR" />
+		<result column="canDel" property="canDel" jdbcType="VARCHAR" />
+		<collection column="ctId"
+			select="com.plastech.crm.mapper.CommodityMapper.selectCommodityByCtid"
+			property="ctName"></collection>
+		<collection column="mfId"
+			select="com.plastech.crm.mapper.ManufacturerMapper.selectManufacturerNameByMfid"
+			property="mfName"></collection>
+	</resultMap>
+	<select id="searchGradeList" parameterType="Map" resultMap="GradeResultMap">
+		select
+		g.geid,
+		g.ctid,
+		g.mfid,
+		any_value (g.grade_number) AS grade_number,
+		any_value (IF(cg.cgid, 1, 0)) AS canDel
+		from grade g
+		left join
+		contract_grade cg
+		on cg.geid = g.geid and cg.cg_status=0
+		where 1=1
+		<if test="ctId!=null">
+			and g.ctid = #{ctId}
+		</if>
+		<if test="mfId!=null">
+			and g.mfid = #{mfId}
+		</if>
+		<if test="searchKey!=null">
+			and g.grade_number like #{searchKey}
+		</if>
+		and g.status=0
+		GROUP BY
+		g.geid,
+		g.ctid,
+		g.mfid
+		order by g.last_update_time
+		desc
+	</select>
+	<select id="checkGradePresence" resultType="Long">
+		SELECT
+		g.geid
+		FROM
+		grade g
+		WHERE
+		g.grade_number = #{number}
+		and g.ctid=#{ctId}
+		and
+		g.mfid=#{mfId}
+		and g.status=0
+	</select>
+	<select id="checkCommodityByCtId" resultType="Boolean">
+		select COUNT(1)
+		from grade g where g.status=0 and g.ctid=#{ctId}
+	</select>
+	<select id="checkManufacturerByMfId" resultType="Boolean">
+		select COUNT(1)
+		from grade g where g.`status`=0 and g.mfid=#{mfId}
+	</select>
+
+	<select id="selectByGradenumberAndMfidAndCtid" resultMap="BaseResultMap">
+		select
+		*
+		from grade
+		where grade_number=#{number} and ctid=#{ctid} and
+		mfid=#{mfid}
+		limit 1
+	</select>
+
+	<select id="getContractGradeList" resultType="com.plastech.crm.model.vo.ContractGradeListView">
+		SELECT
+		g.geid,
+		concat_ws ('#',
+		g.grade_number,
+		ct.`name`
+		,mf.`name`) as concatName
+		FROM
+		grade g
+		LEFT JOIN commodity ct ON ct.ctid
+		= g.ctid
+		LEFT JOIN manufacturer
+		mf on mf.mfid = g.mfid
+		where 1=1 and g.status=0
+	</select>
+	<select id="getContractRelationNumberByGeid" resultType="map">
+		select
+		c.coid,c.number from contract_grade cg
+		INNER JOIN contract c on c.coid=
+		cg.coid
+		where cg.geid=#{geid}
+		GROUP BY c.coid
+	</select>
+	<select id="getCtidAndMfidByGeid" resultMap="BaseResultMap">
+		select * from grade
+		where geid=#{geid} and status=0
+	</select>
+	<select id="getImportGradeByCoid" resultMap="BaseResultMap">
+		SELECT
+		g.*
+		FROM
+		grade g
+		INNER JOIN contract_grade cg ON g.geid = cg.geid
+		WHERE
+		cg.coid = #{coid}
+		AND g.`status` = 0
+		AND cg.cg_status = 0
+	</select>
+	
+</mapper>

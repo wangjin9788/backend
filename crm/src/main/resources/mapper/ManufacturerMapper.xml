@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.plastech.crm.mapper.ManufacturerMapper">
+	<resultMap id="BaseResultMap" type="com.plastech.crm.model.Manufacturer">
+		<!-- WARNING - @mbg.generated -->
+		<id column="mfid" jdbcType="BIGINT" property="mfid" />
+		<result column="name" jdbcType="VARCHAR" property="name" />
+		<result column="status" jdbcType="INTEGER" property="status" />
+		<result column="creator_id" jdbcType="BIGINT" property="creatorId" />
+		<result column="creator_time" jdbcType="TIMESTAMP" property="creatorTime" />
+		<result column="last_update_id" jdbcType="BIGINT" property="lastUpdateId" />
+		<result column="last_update_time" jdbcType="TIMESTAMP"
+			property="lastUpdateTime" />
+		<result column="note" jdbcType="VARCHAR" property="note" />
+	</resultMap>
+	<resultMap id="ManufacturerResultMap" type="com.plastech.crm.model.vo.ManufacturerView">
+		<id column="mfid" property="mfId" jdbcType="BIGINT" />
+		<result column="name" property="name" jdbcType="VARCHAR" />
+		<result column="creator_time" property="creatorTime" jdbcType="TIMESTAMP" />
+		<collection column="uid"
+			select="com.plastech.crm.mapper.UserMapper.selectUserNameByUid"
+			property="creatorNmae"></collection>
+	</resultMap>
+	<select id="searchManufacturer" 
+		resultMap="ManufacturerResultMap">
+		select m.mfid,
+		m.name,
+		m.creator_time,
+		m.creator_id as uid
+		from
+		manufacturer m
+		where
+		1=1
+		<if test="searchKey!=null">
+			and m.name like #{searchKey}
+		</if>
+		and m.status=0
+		ORDER BY m.last_update_time desc
+	</select>
+	
+	<select id="getManufacturerChooseList" 
+		resultMap="ManufacturerResultMap">
+		select m.mfid,
+		m.name,
+		m.creator_time,
+		m.creator_id as uid
+		from
+		manufacturer m
+		where
+		m.status=0
+		ORDER BY CONVERT(m.name USING gbk) asc
+	</select>
+	
+	<select id="selectManufacturerName" resultType="String">
+		select
+		m.name
+		from manufacturer
+		m
+		where 1=1
+		<if test="name!=null">
+			and m.name = #{name}
+		</if>
+		and m.status=0
+	</select>
+	<select id="selectManufacturerNameByMfid" resultType="String">
+		select
+		m.name
+		from manufacturer
+		m
+		where
+		m.mfid = #{mfId}
+		and m.status=0
+	</select>
+	
+	<select id="selectByName" parameterType="java.lang.String"
+		resultMap="BaseResultMap">
+		select *
+		from manufacturer
+		where name=#{name}
+		limit 1
+	</select>
+	
+</mapper>

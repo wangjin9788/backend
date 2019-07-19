@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.plastech.crm.mapper.ContractPurchaseMapper">
+	<resultMap id="BaseResultMap" type="com.plastech.crm.model.ContractPurchase">
+		<!-- WARNING - @mbg.generated -->
+		<id column="cpid" property="cpid" jdbcType="BIGINT" />
+		<result column="coid" property="coid" jdbcType="BIGINT" />
+		<result column="cgid" property="cgid" jdbcType="BIGINT" />
+		<result column="suid" property="suid" jdbcType="BIGINT" />
+		<result column="cp_price_currency" property="cpPriceCurrency"
+			jdbcType="VARCHAR" />
+		<result column="cp_purchase_prices" property="cpPurchasePrices"
+			jdbcType="DOUBLE" />
+		<result column="cp_purchase_quantity" property="cpPurchaseQuantity"
+			jdbcType="DOUBLE" />
+		<result column="cp_sales_volume" property="cpSalesVolume"
+			jdbcType="DOUBLE" />
+		<result column="cp_purchase_cost" property="cpPurchaseCost"
+			jdbcType="DOUBLE" />
+		<result column="cp_supplier_po" property="cpSupplierPo"
+			jdbcType="VARCHAR" />
+		<result column="cp_payment_terms" property="cpPaymentTerms"
+			jdbcType="VARCHAR" />
+		<result column="cp_transportation_terms" property="cpTransportationTerms"
+			jdbcType="VARCHAR" />
+		<result column="cp_logistics_currency" property="cpLogisticsCurrency"
+			jdbcType="VARCHAR" />
+		<result column="cp_logistics_fee" property="cpLogisticsFee"
+			jdbcType="DECIMAL" />
+		<result column="cp_others_currency" property="cpOthersCurrency"
+			jdbcType="DECIMAL" />
+		<result column="cp_other_costs" property="cpOtherCosts"
+			jdbcType="DOUBLE" />
+		<result column="cp_route" property="cpRoute" jdbcType="VARCHAR" />
+		<result column="cp_tool_number" property="cpToolNumber"
+			jdbcType="VARCHAR" />
+		<result column="cp_creator_id" property="cpCreatorId" jdbcType="BIGINT" />
+		<result column="cp_creator_time" property="cpCreatorTime"
+			jdbcType="TIMESTAMP" />
+		<result column="cp_status" property="cpStatus" jdbcType="INTEGER" />
+	</resultMap>
+	<select id="getImportContractPurchaseByGeid" resultMap="BaseResultMap">
+		SELECT
+		*
+		FROM
+		contract_purchase cp
+		WHERE
+		cp.cp_status = 0
+		AND cp.cgid = #{cgid}
+		ORDER BY cp.cp_creator_time,cpid ASC
+		LIMIT 1
+	</select>
+</mapper>

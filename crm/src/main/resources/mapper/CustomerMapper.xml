@@ -1,0 +1,165 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.plastech.crm.mapper.CustomerMapper">
+	<resultMap id="BaseResultMap" type="com.plastech.crm.model.Customer">
+		<!-- WARNING - @mbg.generated -->
+		<id column="cuid" property="cuid" jdbcType="BIGINT" />
+		<result column="gid" property="gid" jdbcType="BIGINT" />
+		<result column="status" property="status" jdbcType="INTEGER" />
+		<result column="cu_name" property="cuName" jdbcType="VARCHAR" />
+		<result column="creator_id" property="creatorId" jdbcType="BIGINT" />
+		<result column="creator_time" property="creatorTime" jdbcType="TIMESTAMP" />
+		<result column="last_update_id" property="lastUpdateId"
+			jdbcType="BIGINT" />
+		<result column="last_update_time" property="lastUpdateTime"
+			jdbcType="TIMESTAMP" />
+		<result column="note" property="note" jdbcType="VARCHAR" />
+	</resultMap>
+	<resultMap id="CustomerResultMap"
+		type="com.plastech.crm.model.vo.ContractCustomerView">
+		<id column="cuid" property="cuid" jdbcType="BIGINT" />
+		<result column="cu_name" property="cuName" jdbcType="VARCHAR" />
+		<collection column="gid"
+			select="com.plastech.crm.mapper.GroupsMapper.getContractGroupsByGid"
+			property="groupsList"></collection>
+	</resultMap>
+	<resultMap id="BaseDetailResultMap"
+		type="com.plastech.crm.model.vo.CustomerBaseDetailView">
+		<result column="cuid" property="cuid" jdbcType="BIGINT" />
+		<result column="gid" property="gid" jdbcType="BIGINT" />
+		<result column="cu_name" property="cuName" jdbcType="VARCHAR" />
+		<result column="companyName" property="companyName" jdbcType="VARCHAR" />
+		<result column="cuAddress" property="cuAddress" jdbcType="VARCHAR" />
+		<result column="note" property="note" jdbcType="VARCHAR" />
+		<collection column="cuid"
+			select="com.plastech.crm.mapper.LinkmanMapper.getCustomerLinkmanDetail"
+			property="linkmanList">
+		</collection>
+	</resultMap>
+	<resultMap id="SearchResultMap" type="com.plastech.crm.model.vo.CustomerView">
+		<result column="cuid" property="cuid" jdbcType="BIGINT" />
+		<result column="gid" property="gid" jdbcType="BIGINT" />
+		<result column="cuName" property="cuName" jdbcType="VARCHAR" />
+		<result column="companyName" property="companyName" jdbcType="VARCHAR" />
+		<result column="cuAddress" property="cuAddress" jdbcType="VARCHAR" />
+		<result column="note" property="note" jdbcType="VARCHAR" />
+		<result column="status" property="status" jdbcType="INTEGER" />
+		<result column="canDel" property="canDel" jdbcType="INTEGER" />
+		<collection column="cuid"
+			select="com.plastech.crm.mapper.LinkmanMapper.getCustomerLinkmanCountByCuid"
+			property="linkmanCount">
+		</collection>
+	</resultMap>
+	<select id="searchCustomerList" parameterType="map" resultMap="SearchResultMap">
+
+		SELECT
+		any_value(c.cuid)as cuid,
+		any_value(c.gid) as gid,
+		any_value(c.cu_name) as cuName,
+		any_value(c.status) as status,
+		any_value(c.note) as note,
+		any_value(c.cu_address) as cuAddress,
+		any_value(g.`name`) as companyName,
+		any_value(if(co.coid,1,0)) as
+		canDel,
+		any_value(c.last_update_time) as last_update_time
+		from
+		customer c
+		inner JOIN groups g on
+		g.gid=c.gid
+		and
+		g.`status`=0 and
+		c.`status`=0
+		LEFT
+		JOIN contract co on co.cuid=c.cuid
+		where 1=1 and
+		c.`status`=0
+		<if test="searchkey!=null">
+			and c.cu_name like #{searchkey}
+			or g.name like #{searchkey}
+		</if>
+		GROUP BY cuid,gid
+		order by last_update_time desc
+	</select>
+
+	<select id="checkBranchDoesItExist" resultType="Boolean">
+		select count(*) from customer c where 1=1
+		<if test="name!=null">
+			and c.cu_name=#{name}
+		</if>
+		<if test="gid!=null">
+			and c.gid=#{gid}
+		</if>
+	</select>
+
+	<select id="selectByName" resultMap="BaseResultMap">
+		select *
+		from customer
+		where
+		cu_name=#{name} and gid=#{gid}
+		limit 1
+	</select>
+
+	<select id="getContractCustomerList" resultMap="CustomerResultMap">
+		SELECT
+		c.cuid,
+		c.cu_name,
+		c.gid
+		FROM
+		customer c
+		WHERE
+		c.`status` = 0
+		ORDER BY c.cu_name asc
+	</select>
+	<select id="getCustomerBaseDetail" resultMap="BaseDetailResultMap">
+		SELECT
+		c.cuid,
+		c.gid,
+		c.cu_name,
+		c.note,
+		c.cu_address as
+		cuAddress,
+		g.`name` as
+		companyName
+		from customer c
+		LEFT JOIN groups g on
+		g.gid=c.gid
+		where
+		c.status=0
+		and c.cuid=#{cuid}
+	</select>
+
+	<select id="getGroupsContractRelationNumberByGid" resultType="map">
+		select c.coid,c.number from contract c where c.cuid=#{cuid} GROUP BY
+		c.coid
+	</select>
+
+	<select id="checkInitCustomerInfo" resultMap="BaseResultMap">
+		SELECT
+		*
+		FROM
+		customer cu
+		WHERE
+		cu.gid = #{gid} and cu.cu_name=#{name} and
+		cu.cu_address=#{address} and cu.status=0
+		limit 1
+	</select>
+	<select id="getExportCustomerInfoList" resultType="com.plastech.crm.model.vo.ExportSupplierAndGroupsView">
+		SELECT
+		g.`name` AS name,
+		cu.cu_name AS fullName,
+		cu.cu_address as address,
+		l.name lName,
+		l.lk_position AS position,
+		l.lk_phone AS phone,
+		l.lk_mail AS mail,
+		l.lk_tags tags,
+		l.note
+		FROM
+		groups g
+		INNER JOIN customer cu ON cu.gid = g.gid
+		LEFT JOIN middle_customer_linkman m on m.cuid=cu.cuid
+		LEFT JOIN linkman l ON l.lkid = m.lkid and l.status=0
+		where g.status=0 and cu.status=0 
+	</select>
+</mapper>

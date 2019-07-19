@@ -1,0 +1,257 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.plastech.crm.mapper.SaManufacturerDetailMapper">
+	<resultMap id="BaseResultMap" type="com.plastech.crm.model.SaManufacturerDetail">
+		<!-- WARNING - @mbg.generated -->
+		<id column="smdid" property="smdid" jdbcType="BIGINT" />
+		<result column="gid" property="gid" jdbcType="BIGINT" />
+		<result column="mfid" property="mfid" jdbcType="BIGINT" />
+		<result column="ct_name" property="ctName" jdbcType="VARCHAR" />
+		<result column="purchase_quantity" property="purchaseQuantity"
+			jdbcType="DOUBLE" />
+		<result column="smd_year" property="smdYear" jdbcType="CHAR" />
+		<result column="smd_month" property="smdMonth" jdbcType="CHAR" />
+		<result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
+		<result column="last_update_time" property="lastUpdateTime"
+			jdbcType="TIMESTAMP" />
+		<result column="note" property="note" jdbcType="VARCHAR" />
+	</resultMap>
+	<resultMap id="LoyaltyResultMap"
+		type="com.plastech.crm.model.vo.SaManufacturerLoyaltyView">
+		<result column="year" property="year" jdbcType="VARCHAR" />
+		<result column="loyaltyName" property="name" jdbcType="VARCHAR" />
+		<collection column="{gid=gid,year=year}"
+			select="com.plastech.crm.mapper.SaManufacturerDetailMapper.getLoyaltyBuyMonthQuantity"
+			property="monthCount"></collection>
+	</resultMap>
+
+	<select id="getCommodityPurchaseQuantity" resultType="com.plastech.crm.model.SaManufacturerDetail">
+		SELECT
+		g.mfid,
+		g.ctid,
+		any_value (c.gid) as gid,
+		any_value (ct.name) as
+		ctName,
+		SUM(cg.cg_sales_volume) as purchaseQuantity,
+		any_value
+		(YEAR(cg.cg_shipmt_date)) as smdYear,
+		any_value
+		(MONTH(cg.cg_shipmt_date)) as smdMonth
+		FROM
+		contract c
+		INNER JOIN
+		contract_grade cg ON cg.coid = c.coid
+		INNER JOIN contract_purchase cp
+		on cp.cgid=cg.cgid
+		INNER JOIN grade g ON g.geid = cg.geid
+		INNER JOIN
+		commodity ct ON ct.ctid = g.ctid
+		WHERE
+		c.status=0 and cg.cg_status=0 and
+		g.status=0 and cp.cp_status=0
+		and ct.status=0
+		and YEAR
+		(cg.cg_shipmt_date) =
+		#{year}
+		AND MONTH
+		(cg.cg_shipmt_date) = #{month}
+		<if test="ctid!=null">
+			and g.ctid=#{ctid}
+		</if>
+		<if test="mfid!=null">
+			and g.mfid=#{mfid}
+		</if>
+		<if test="gid!=null">
+			and c.gid=#{gid}
+		</if>
+		GROUP BY
+		g.mfid,
+		g.ctid,
+		c.gid
+		ORDER BY smdMonth
+		asc
+	</select>
+	<select id="getCommodityYearPurchaseQuantity" resultType="com.plastech.crm.model.SaManufacturerDetail">
+		SELECT
+		g.mfid,
+		g.ctid,
+		c.gid as gid,
+		any_value (ct.name) as ctName,
+		SUM(cg.cg_sales_volume) as purchaseQuantity,
+		any_value
+		(YEAR(cg.cg_shipmt_date)) as smdYear,
+		13 as smdMonth
+		FROM
+		contract c
+		INNER JOIN
+		contract_grade cg ON cg.coid = c.coid
+		INNER JOIN
+		contract_purchase cp
+		on cp.cgid=cg.cgid
+		INNER JOIN grade g ON g.geid =
+		cg.geid
+		INNER JOIN
+		commodity ct ON ct.ctid = g.ctid
+		WHERE
+		c.status=0 and
+		cg.cg_status=0 and g.status=0 and cp.cp_status=0
+		and ct.status=0 and
+		YEAR
+		(cg.cg_shipmt_date) =
+		#{year}
+		<if test="ctid!=null">
+			and g.ctid=#{ctid}
+		</if>
+		<if test="mfid!=null">
+			and g.mfid=#{mfid}
+		</if>
+		<if test="gid!=null">
+			and c.gid=#{gid}
+		</if>
+		GROUP BY
+		g.mfid,
+		g.ctid,
+		c.gid
+		ORDER BY smdMonth
+		asc
+	</select>
+	<select id="getSaManufacturerDetailInfo" resultMap="BaseResultMap">
+		SELECT
+		*
+		FROM
+		sa_manufacturer_detail s
+		where s.gid=#{gid} and s.mfid=#{mfid} and
+		s.ctid=#{ctid} and
+		s.smd_year=#{year} and s.smd_month=#{month}
+		LIMIT 1
+	</select>
+	<select id="getCommodityAnalysisStatisticsList" resultType="com.plastech.crm.model.vo.SalesAnalysisDataView">
+		select concat('0',s.smd_month) as month,
+		concat(s.smd_year,'-',s.smd_month) as yearMonth,
+		s.purchase_quantity as
+		salesTotal,
+		2019 as year from sa_manufacturer_detail s where
+		s.gid=#{gid}
+		and
+		s.mfid=#{mfid}
+		and s.ctid = #{ctid}
+		and
+		s.smd_year=#{year}
+	</select>
+	<select id="getManufacturerCommodityList"
+		resultType="com.plastech.crm.model.vo.SaManufacturerCommodityView">
+		SELECT
+		s.ctid,
+		s.gid,
+		s.mfid,
+		s.ct_name as ctName,
+		s.purchase_quantity as
+		quantity
+		FROM
+		sa_manufacturer_detail s
+		WHERE
+		s.mfid = #{mfid}
+		<if test="searchKey!=null">
+			and s.ct_name like #{searchKey}
+		</if>
+		and s.gid=#{gid} and s.smd_year=#{year}
+		and s.smd_month=13
+	</select>
+	<select id="checkSaCommodityDetailInfo" resultMap="BaseResultMap">
+		SELECT
+		*
+		FROM
+		sa_manufacturer_detail s
+		LIMIT 1
+	</select>
+	<select id="getAcquireLoyaltyList" resultMap="LoyaltyResultMap">
+		<![CDATA[select cl.years as year,l.name as loyaltyName,#{gid} as gid,#{startYear} as year from customer_loyalty cl
+		INNER JOIN loyalty l on l.lid=cl.lid
+		where cl.years<=#{startYear} and cl.years>=#{endYear} and cl.gid=#{gid} and cl.mfid=#{mfid}
+		 ]]>
+	</select>
+	<select id="getLoyaltyBuyMonthQuantity" resultType="Integer">
+		select
+		COUNT(DISTINCT month(cg.cg_shipmt_date)) as
+		monthCount
+		from contract c
+		INNER JOIN contract_grade cg on cg.coid=c.coid
+		where
+		c.`status`=0 and
+		c.gid=#{gid} and year(cg.cg_shipmt_date)=#{year}
+	</select>
+	<select id="getManufacturersRelatedGroups" resultType="com.plastech.crm.model.vo.SaManufacturerLoyaltyView">
+		select
+		g.`name`,g.gid from contract co
+		INNER JOIN contract_grade cg on
+		cg.coid=co.coid
+		INNER JOIN grade ge on ge.geid =cg.geid
+		INNER JOIN
+		groups g on g.gid=co.gid
+		where co.`status`=0 and cg.cg_status=0 and
+		ge.mfid=#{mfid}
+		and year(cg.cg_shipmt_date)=#{year}
+		GROUP BY co.gid
+	</select>
+	<select id="obtainManufacturerRelatedParameters"
+		resultType="com.plastech.crm.model.vo.SaManufacturerTotalDataView">
+		SELECT
+		any_value(m.`name`) AS mfName,
+		any_value(gs.`name`) AS
+		gName,
+		any_value(if(l.`name`,l.`name`,'N')) AS lName,
+		any_value(SUM(cg.cg_sales_volume))
+		AS annualPurchaseVolume,
+		any_value(COUNT(
+		DISTINCT MONTH
+		(cg.cg_shipmt_date)
+		)) AS buyingFrequency
+		FROM
+		manufacturer m
+		INNER JOIN
+		grade g ON g.mfid = m.mfid
+		INNER JOIN
+		contract_grade cg ON cg.geid =
+		g.geid
+		INNER JOIN contract co ON co.coid
+		= cg.coid
+		INNER JOIN groups gs
+		on gs.gid=co.gid
+		left JOIN
+		customer_loyalty cl ON cl.gid = co.gid and cl.years =(#{year}-1)
+		left
+		JOIN loyalty l ON l.lid = cl.lid AND l.lid = #{lid} and l.status=0
+		WHERE
+		co.`status` = 0 AND
+		m.`status` = 0 and cg.cg_status=0 and
+		gs.status=0
+		AND
+		m.mfid = #{mfid}
+		AND YEAR (cg.cg_shipmt_date) =
+		#{year}
+		AND co.gid =
+		#{gid}
+		GROUP by m.mfid
+	</select>
+	<select id="deleteSaManufacturerDetailByYearAndMonth">
+		delete from sa_manufacturer_detail where
+		smd_year=#{year} and smd_month=#{month} and ctid=#{ctid} and
+		mfid=#{mfid} and gid=#{gid}
+	</select>
+	<delete id="deleteSaManufacturerDetailBySmdid">
+		delete
+		FROM
+		sa_manufacturer_detail
+		WHERE
+		smd_year = #{year}
+		AND smd_month =
+		#{month}
+		and
+		smdid not IN
+		<foreach collection="list" item="id" open="(" close=")"
+			separator=",">
+			#{id}
+		</foreach>
+
+	</delete>
+</mapper>

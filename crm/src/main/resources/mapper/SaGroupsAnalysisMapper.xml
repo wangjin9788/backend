@@ -1,0 +1,234 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.plastech.crm.mapper.SaGroupsAnalysisMapper">
+	<resultMap id="BaseResultMap" type="com.plastech.crm.model.SaGroupsAnalysis">
+		<id column="sgid" property="sgid" jdbcType="BIGINT" />
+		<result column="gid" property="gid" jdbcType="BIGINT" />
+		<result column="g_name" property="gName" jdbcType="VARCHAR" />
+		<result column="grade_number" property="gradeNumber" jdbcType="VARCHAR" />
+		<result column="year" property="year" jdbcType="CHAR" />
+		<result column="month" property="month" jdbcType="CHAR" />
+		<result column="sales_total" property="salesTotal" jdbcType="DOUBLE" />
+		<result column="manufacturer_count" property="manufacturerCount"
+			jdbcType="INTEGER" />
+		<result column="commodity_count" property="commodityCount"
+			jdbcType="INTEGER" />
+		<result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
+		<result column="last_update_time" property="lastUpdateTime"
+			jdbcType="TIMESTAMP" />
+		<result column="note" property="note" jdbcType="VARCHAR" />
+	</resultMap>
+	<resultMap id="TotleResultMap" type="com.plastech.crm.model.vo.SalesAnalysisView">
+		<result column="year" property="year" jdbcType="INTEGER" />
+		<result column="commodityCount" property="annualCommodityCount"
+			jdbcType="INTEGER" />
+		<result column="manufacturerCount" property="annualManufacturerCount"
+			jdbcType="INTEGER" />
+		<result column="salesTotal" property="annualSalesTotal"
+			jdbcType="DOUBLE" />
+	</resultMap>
+	<select id="getSaGroupsStatisticsInfoByMonth" resultMap="BaseResultMap">
+		SELECT
+		g.gid,
+		any_value(g.`name`) as g_name,
+		any_value(YEAR
+		(cg.cg_shipmt_date)) AS year,
+		any_value(MONTH (cg.cg_shipmt_date)) AS
+		month,
+		any_value(SUM(cg.cg_sales_volume)) as sales_total,
+		any_value(COUNT(DISTINCT ge.ctid)) as commodity_count,
+		any_value(COUNT(DISTINCT ge.mfid)) as manufacturer_count,
+		any_value(ge.grade_number) as grade_number
+		FROM
+		contract c
+		INNER JOIN
+		groups g ON g.gid = c.gid
+		INNER JOIN contract_grade cg ON cg.coid
+		=c.coid
+		INNER JOIN grade ge on ge.geid=cg.geid
+		WHERE
+		c.`status`
+		= 0 and
+		g.status=0 and cg.cg_status=0
+		AND YEAR
+		(cg.cg_shipmt_date)=#{year} and
+		month(cg.cg_shipmt_date)=#{month}
+		<if test="gid!=null">
+			and g.gid=#{gid}
+		</if>
+		GROUP
+		BY g.gid,
+		month(cg.cg_shipmt_date)
+	</select>
+	<select id="getSaGroupsStatisticsInfoByYear" resultMap="BaseResultMap">
+		SELECT
+		g.gid,
+		any_value(g.`name`) as g_name,
+		any_value(YEAR
+		(cg.cg_shipmt_date)) AS year,
+		13 AS
+		month,
+		any_value(SUM(cg.cg_sales_volume)) as sales_total,
+		any_value(COUNT(DISTINCT ge.ctid)) as commodity_count,
+		any_value(COUNT(DISTINCT ge.mfid)) as manufacturer_count,
+		any_value(ge.grade_number) as grade_number
+		FROM
+		contract c
+		INNER JOIN
+		groups g ON g.gid = c.gid
+		INNER JOIN contract_grade cg ON
+		cg.coid =
+		c.coid
+		INNER JOIN grade ge on ge.geid=cg.geid
+		WHERE
+		c.`status`
+		= 0 and
+		g.status=0 and cg.cg_status=0
+		AND YEAR
+		(cg.cg_shipmt_date)=#{year}
+		<if test="gid!=null">
+			and g.gid=#{gid}
+		</if>
+		GROUP
+		BY g.gid
+	</select>
+	<select id="checkSaGroupsSt" resultMap="BaseResultMap">
+		select * from
+		sa_groups_st LIMIT 1
+	</select>
+
+	<select id="getStGroupsStStatisticsList" resultType="com.plastech.crm.model.vo.SalesAnalysisDataView">
+		SELECT
+		concat('0', sg.`month`) AS month,
+		concat(
+		sg.year, '-', sg.`month`) AS
+		yearMonth,
+		sg.sales_total AS salesTotal,
+		sg.manufacturer_count as
+		manufacturerCount,
+		sg.commodity_count as commodityCount
+		FROM
+		sa_groups_st sg
+		where
+		sg.gid=#{gid} and sg.year=#{year}
+		and sg.month!=13
+	</select>
+	<select id="getSaGroupsStByGid" resultMap="BaseResultMap">
+		SELECT
+		*
+		FROM
+		sa_groups_st sg
+		WHERE
+		sg.gid = #{gid} and sg.year=#{year} and
+		sg.month=#{month}
+		LIMIT 1
+	</select>
+	<select id="getPurchaseTotal" resultMap="TotleResultMap">
+		SELECT
+		sg.year,
+		sg.sales_total AS salesTotal,
+		sg.manufacturer_count as
+		manufacturerCount,
+		sg.commodity_count as commodityCount
+		FROM
+		sa_groups_st sg
+		where
+		sg.gid=#{gid} and sg.year=#{year}
+		and sg.month=13
+	</select>
+	<select id="getCommodityPercentage"
+		resultType="com.plastech.crm.model.vo.SaGroupsCommodityPercentageView">
+		SELECT
+		ct.ctid,
+		ct.`name`,
+		SUM(cg.cg_sales_volume) AS
+		purchaseVolume
+		FROM
+		commodity ct
+		INNER JOIN grade g ON g.ctid = ct.ctid
+		INNER JOIN contract_grade cg ON cg.geid = g.geid
+		INNER JOIN contract c
+		ON c.coid = cg.coid
+		WHERE
+		c.`status`
+		= 0 and ct.status=0 and
+		cg.cg_status=0
+		AND YEAR (cg.cg_shipmt_date) =
+		#{year}
+		AND c.gid = #{gid}
+		GROUP BY
+		ct.ctid
+	</select>
+	<select id="getCommodity"
+		resultType="com.plastech.crm.model.vo.SaGroupsCommodityOrManufacturerView">
+		SELECT
+		scp.ctid as id,
+		any_value (scp.ct_name) as name
+		FROM
+		sa_commodity_purchase scp
+		WHERE
+		scp.gid = #{gid}
+		AND scp.`year` = #{year}
+		GROUP BY
+		scp.ctid
+	</select>
+	<select id="getManufacturer"
+		resultType="com.plastech.crm.model.vo.SaGroupsCommodityOrManufacturerView">
+		SELECT
+		scp.mfid as id,
+		any_value (scp.mf_name) as name
+		FROM
+		sa_commodity_purchase scp
+		WHERE
+		scp.gid = #{gid}
+		AND scp.`year` = #{year}
+		GROUP BY
+		scp.mfid
+	</select>
+	<select id="getExportGroupsInfoList" resultType="com.plastech.crm.model.parameter.ExportDataInfoView">
+		SELECT
+		g.gid,
+		month(cg.cg_shipmt_date) as month,
+		any_value(g.`name`) as
+		mfName,
+		any_value(SUM(cg.cg_sales_volume)) AS volume
+		FROM
+		contract c
+		INNER JOIN groups g ON g.gid = c.gid
+		INNER JOIN contract_grade cg ON
+		cg.coid = c.coid
+		INNER JOIN grade ge ON ge.geid = cg.geid
+		WHERE
+		c.`status` = 0 and g.status=0 and cg.cg_status=0
+		and
+		YEAR (cg.cg_shipmt_date) = #{year}
+		and c.gid in
+		<foreach collection="list" item="gid" open="(" close=")"
+			separator=",">
+			#{gid}
+		</foreach>
+		GROUP BY g.gid, month(cg.cg_shipmt_date)
+		ORDER BY gid
+	</select>
+	<delete id="deleteSaGroupsByYearAndMonth">
+		delete from sa_groups_st where year=#{year} and
+		month=#{month} and gid=#{gid}
+	</delete>
+	<delete id="deleteSaGroupsBySgid">
+		delete
+		FROM
+		sa_groups_st
+		WHERE
+		year = #{year}
+		AND month = #{month}
+		and
+		sgid
+		not IN
+		<foreach collection="list" item="id" open="(" close=")"
+			separator=",">
+			#{id}
+		</foreach>
+
+	</delete>
+
+</mapper>

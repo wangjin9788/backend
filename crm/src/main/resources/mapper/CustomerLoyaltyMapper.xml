@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.plastech.crm.mapper.CustomerLoyaltyMapper">
+	<resultMap id="BaseResultMap" type="com.plastech.crm.model.CustomerLoyalty">
+		<!-- WARNING - @mbg.generated -->
+		<id column="clid" property="clid" jdbcType="BIGINT" />
+		<result column="cuid" property="cuid" jdbcType="BIGINT" />
+		<result column="lid" property="lid" jdbcType="BIGINT" />
+		<result column="years" property="years" jdbcType="TIMESTAMP" />
+		<result column="creator_id" property="creatorId" jdbcType="BIGINT" />
+		<result column="creator_time" property="creatorTime" jdbcType="TIMESTAMP" />
+		<result column="note" property="note" jdbcType="VARCHAR" />
+	</resultMap>
+	<delete id="deleteCustomerLoyalty">
+		delete from customer_loyalty where
+		years=#{years} and gid=#{gid} and mfid=#{mfid}
+	</delete>
+</mapper>

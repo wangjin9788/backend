@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.plastech.crm.mapper.GroupsMapper">
+	<resultMap id="BaseResultMap" type="com.plastech.crm.model.Groups">
+		<!-- WARNING - @mbg.generated -->
+		<id column="gid" property="gid" jdbcType="BIGINT" />
+		<result column="name" property="name" jdbcType="VARCHAR" />
+		<result column="type" property="type" jdbcType="INTEGER" />
+		<result column="code" property="code" jdbcType="INTEGER" />
+		<result column="creator_id" property="creatorId" jdbcType="BIGINT" />
+		<result column="creator_time" property="creatorTime" jdbcType="TIMESTAMP" />
+		<result column="note" property="note" jdbcType="VARCHAR" />
+		<result column="status" property="status" jdbcType="INTEGER" />
+	</resultMap>
+
+	<select id="getGroupsSelectionForSupplier" resultType="com.plastech.crm.model.vo.GroupsView">
+		select
+		gr.gid,gr.name,gr.type,gr.creator_id as creatorId,u.uname as
+		creatorName
+		from groups gr
+		left join user u on u.uid=gr.creator_id
+		where
+		gr.type=1 and gr.code=0
+	</select>
+
+	<select id="selectByNameAndType" resultMap="BaseResultMap">
+		select * from
+		groups
+		where name=#{name} and type=#{type}
+		limit 1
+	</select>
+	<select id="searchGroupsList" resultType="com.plastech.crm.model.vo.GroupsView">
+		select
+		gr.gid,gr.name,gr.type,gr.creator_id as creatorId
+		from groups gr
+		where gr.type=1 and gr.code=0
+		<if test="searchKey!=null">
+			and gr.name like #{searchKey}
+		</if>
+		and gr.status=0
+		order by gr.creator_time desc
+	</select>
+	
+	<select id="getGroupsChooseList" resultType="com.plastech.crm.model.vo.GroupsView">
+		select
+		gr.gid,gr.name,gr.type,gr.creator_id as creatorId
+		from groups gr
+		where gr.type=1 and gr.code=0
+		and gr.status=0
+		order by  convert(	gr.name USING gbk) asc
+	</select>
+
+	<select id="getContractGroupsByGid" resultType="com.plastech.crm.model.vo.GroupsView">
+		select
+		gr.gid,gr.name
+		from groups gr
+		where
+		gr.type=1 and gr.code=0 and
+		gr.gid=#{gid}
+		ORDER BY gr.name asc
+	</select>
+	
+</mapper>

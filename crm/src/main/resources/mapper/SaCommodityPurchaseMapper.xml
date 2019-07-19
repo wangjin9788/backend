@@ -1,0 +1,233 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.plastech.crm.mapper.SaCommodityPurchaseMapper">
+	<resultMap id="BaseResultMap" type="com.plastech.crm.model.SaCommodityPurchase">
+		<!-- WARNING - @mbg.generated -->
+		<id column="scpid" property="scpid" jdbcType="BIGINT" />
+		<result column="gid" property="gid" jdbcType="BIGINT" />
+		<result column="ctid" property="ctid" jdbcType="BIGINT" />
+		<result column="ct_name" property="ctName" jdbcType="VARCHAR" />
+		<result column="mfid" property="mfid" jdbcType="BIGINT" />
+		<result column="mf_name" property="mfName" jdbcType="VARCHAR" />
+		<result column="year" property="year" jdbcType="CHAR" />
+		<result column="month" property="month" jdbcType="CHAR" />
+		<result column="purchase_total" property="purchaseTotal"
+			jdbcType="DOUBLE" />
+		<result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
+		<result column="last_update_time" property="lastUpdateTime"
+			jdbcType="TIMESTAMP" />
+		<result column="note" property="note" jdbcType="VARCHAR" />
+	</resultMap>
+	<select id="getSaCommodityPurchaseStatisticsInfoByMonth"
+		resultMap="BaseResultMap">
+		SELECT
+		ct.ctid,
+		mf.mfid,
+		any_value(c.gid) as gid,
+		any_value(ct.`name`)as
+		ct_name,
+		any_value(mf.`name`) as mf_name,
+		MONTH
+		(cg.cg_shipmt_date) AS
+		month,
+		any_value(YEAR (cg.cg_shipmt_date)) AS
+		year,
+		any_value(sum(cg.cg_sales_volume)) as purchase_total
+		FROM
+		contract
+		c
+		INNER JOIN contract_grade cg ON cg.coid = c.coid
+		INNER JOIN grade g ON
+		g.geid = cg.geid
+		INNER JOIN commodity ct ON ct.ctid = g.ctid
+		INNER JOIN
+		manufacturer mf ON mf.mfid = g.mfid
+		WHERE
+		c.status = 0 and
+		cg.cg_status=0 and ct.status=0 and mf.status=0
+		AND year
+		(cg.cg_shipmt_date) = #{year} and month
+		(cg.cg_shipmt_date)=#{month}
+		<if test="ctid!=null">
+			and ct.ctid=#{ctid}
+		</if>
+		<if test="mfid!=null">
+			and mf.mfid=#{mfid}
+		</if>
+		<if test="gid!=null">
+			and c.gid=#{gid}
+		</if>
+		GROUP BY c.gid,ct.ctid,mf.mfid,month
+		ORDER BY year
+	</select>
+	<select id="getSaCommodityPurchaseStatisticsInfoByYear"
+		resultMap="BaseResultMap">
+		SELECT
+		ct.ctid,
+		mf.mfid,
+		c.gid,
+		any_value(ct.`name`)as ct_name,
+		any_value(mf.`name`) as mf_name,
+		13 AS
+		month,
+		any_value(YEAR
+		(cg.cg_shipmt_date)) AS year,
+		any_value(sum(cg.cg_sales_volume)) as
+		purchase_total
+		FROM
+		contract c
+		INNER
+		JOIN
+		contract_grade cg ON cg.coid =
+		c.coid
+		INNER JOIN grade g ON
+		g.geid
+		=cg.geid
+		INNER JOIN commodity ct ON
+		ct.ctid = g.ctid
+		INNER JOIN
+		manufacturer mf ON mf.mfid = g.mfid
+		WHERE
+		c.status = 0 and cg.cg_status=0 and ct.status=0 and mf.status=0
+		AND
+		YEAR
+		(cg.cg_shipmt_date) = #{year}
+		<if test="ctid!=null">
+			and ct.ctid=#{ctid}
+		</if>
+		<if test="mfid!=null">
+			and mf.mfid=#{mfid}
+		</if>
+		<if test="gid!=null">
+			and c.gid=#{gid}
+		</if>
+		GROUP BY
+		c.gid,ct.ctid,mf.mfid,YEAR
+		(cg.cg_shipmt_date)
+		ORDER BY year
+	</select>
+	<select id="getSaCommodityPurchaseTotal" parameterType="map"
+		resultType="com.plastech.crm.model.vo.SalesAnalysisView">
+		SELECT
+		sum(sp.purchase_total) as annualSalesTotal
+		FROM
+		sa_commodity_purchase
+		sp
+		WHERE
+		sp.`year` = #{year}
+		and sp.gid=#{gid}
+		and
+		sp.ctid=#{ctid}
+		<if test="mfid!=null">
+			and sp.mfid=#{mfid}
+		</if>
+		and sp.month=13
+	</select>
+	<select id="getSaCommodityPurchaseTotalById" parameterType="map"
+		resultType="com.plastech.crm.model.vo.SaCommodityAnalysisView">
+		SELECT
+		sp.ctid,
+		any_value(sp.mfid) as mfid,
+		any_value(sp.ct_name) as
+		ctName,
+		any_value(sp.mf_name) as mfName,
+		any_value(sum(sp.purchase_total)) as
+		saleaVolume
+		FROM
+		sa_commodity_purchase sp
+		WHERE
+		sp.`year` = #{year} and
+		sp.gid=#{gid} and
+		sp.ctid=#{ctid}
+		<if test="mfid!=null">
+			and sp.mfid=#{mfid}
+		</if>
+		and sp.month=13
+		GROUP BY sp.ctid,sp.mfid
+
+	</select>
+	<select id="getTableData" resultMap="BaseResultMap">
+		SELECT
+		*
+		FROM
+		sa_commodity_purchase
+		LIMIT 1
+	</select>
+	<select id="getSacommodityPurchaseInfoById" resultMap="BaseResultMap">
+		SELECT
+		scp.*
+		FROM
+		sa_commodity_purchase scp
+		where scp.ctid=#{ctid} and
+		scp.mfid=#{mfid} and scp.gid=#{gid} and
+		scp.year=#{year} and
+		scp.month=#{month}
+		LIMIT 1
+	</select>
+	<select id="getSaCommodityPurchaseDetailTotal" parameterType="map"
+		resultType="com.plastech.crm.model.vo.SaManufacturerTotalDataView">
+		SELECT
+		any_value(cp.ct_name) as ctName,
+		any_value(IF(#{mfid},cp.mf_name,'全部')) as
+		mfName,
+		any_value(sum(cp.purchase_total)) as annualPurchaseVolume
+		FROM
+		sa_commodity_purchase cp
+		where cp.ctid=#{ctid}
+		<if test="mfid!=null">
+			and cp.mfid=#{mfid}
+		</if>
+		and cp.`year`=#{year} and gid=#{gid} and cp.month=13
+		GROUP BY
+		cp.ctid,cp.year,cp.gid
+	</select>
+	<select id="searchCommodityPurchaseDetailCustomer"
+		parameterType="map" resultType="com.plastech.crm.model.vo.SaCommodityPurchaseDetail">
+		select
+		cu.cuid,
+		g.gid,
+		#{year} as year,
+		cu.cu_name as cuName,
+		sum(cg.cg_sales_volume) as salesVolume
+		from groups g
+		INNER JOIN contract
+		co on co.gid=g.gid
+		INNER JOIN customer cu on cu.cuid=co.cuid
+		INNER JOIN
+		contract_grade cg on cg.coid=co.coid
+		INNER JOIN grade ge on
+		ge.geid=cg.geid
+		where g.status=0 and co.status=0 and cu.status=0 and
+		cg.cg_status=0 and
+		year(cg.cg_shipmt_date)=#{year}
+		and g.gid=#{gid}
+		and
+		ge.ctid=#{ctid}
+		<if test="mfid!=null">
+			and ge.mfid=#{mfid}
+		</if>
+		<if test="name!=null">
+			and cu.cu_name like #{name}
+		</if>
+		GROUP BY cu.cuid
+	</select>
+	<delete id="deleteSaCommodityPurchaseDetailByYearAndMonth">
+		delete from sa_commodity_purchase where year=#{year}
+		and month=#{month} and ctid=#{ctid} and mfid=#{mfid} and gid=#{gid}
+	</delete>
+	<delete id="deleteSaCommodityPurchaseByScdid">
+		delete
+		FROM
+		sa_commodity_purchase
+		WHERE
+		year = #{year}
+		AND month = #{month}
+		and
+		scpid not IN
+		<foreach collection="list" item="id" open="(" close=")"
+			separator=",">
+			#{id}
+		</foreach>
+
+	</delete>
+</mapper>

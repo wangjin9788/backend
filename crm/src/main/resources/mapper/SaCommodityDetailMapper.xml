@@ -1,0 +1,260 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.plastech.crm.mapper.SaCommodityDetailMapper">
+	<resultMap id="BaseResultMap" type="com.plastech.crm.model.SaCommodityDetail">
+		<!-- WARNING - @mbg.generated -->
+		<id column="scdid" property="scdid" jdbcType="BIGINT" />
+		<result column="ctid" property="ctid" jdbcType="BIGINT" />
+		<result column="mfid" property="mfid" jdbcType="BIGINT" />
+		<result column="cu_name" property="cuName" jdbcType="VARCHAR" />
+		<result column="purchase_quantity" property="purchaseQuantity"
+			jdbcType="DOUBLE" />
+		<result column="scd_year" property="scdYear" jdbcType="CHAR" />
+		<result column="scd_month" property="scdMonth" jdbcType="CHAR" />
+		<result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
+		<result column="last_update_time" property="lastUpdateTime"
+			jdbcType="TIMESTAMP" />
+		<result column="note" property="note" jdbcType="VARCHAR" />
+	</resultMap>
+	<resultMap id="StatisticsResultMap"
+		type="com.plastech.crm.model.vo.SalesAnalysisDataView">
+		<result column="month" property="month" jdbcType="VARCHAR" />
+		<result column="yearMonth" property="yearMonth" jdbcType="VARCHAR" />
+		<result column="salesTotal" property="salesTotal" jdbcType="DOUBLE" />
+		<result column="groupCount" property="groupCount" jdbcType="INTEGER" />
+		<result column="purchase_quantity" property="purchaseQuantity"
+			jdbcType="DOUBLE" />
+	</resultMap>
+	<select id="getSaCommodityDetailAnalysis"
+		resultType="com.plastech.crm.model.parameter.SaCommodityParameters">
+		select any_value(g.name)as name,
+		any_value(ge.ctid)as ctid,
+		any_value(ge.mfid) as mfid,
+		any_value(g.gid) as gid,
+		any_value(year(cg.cg_shipmt_date))as year,
+		any_value(month(cg.cg_shipmt_date)) as month,
+		IFNULL(SUM(cg.cg_sales_volume),0)
+		as quantity
+		from contract
+		c
+		INNER
+		JOIN
+		groups g on g.gid=c.gid
+		INNER JOIN contract_grade cg on
+		cg.coid=c.coid
+		INNER JOIN contract_purchase cp on cp.cgid=cg.cgid
+		INNER
+		JOIN grade ge
+		on ge.geid=cg.geid
+		where year(cg.cg_shipmt_date)=#{year}
+		and
+		month(cg.cg_shipmt_date)=#{month}
+		and c.status=0 and g.status=0 and
+		cg.cg_status=0 and cp.cp_status=0
+		<if test="ctid!=null">
+			and ge.ctid=#{ctid}
+		</if>
+		<if test="mfid!=null">
+			and ge.mfid=#{mfid}
+		</if>
+		<if test="gid!=null">
+			and g.gid=#{gid}
+		</if>
+		GROUP BY
+		month,ge.ctid,ge.mfid,g.gid
+		ORDER BY year asc
+	</select>
+	<select id="getCommodityDetailAnalysisFromContractDataForYear"
+		resultType="com.plastech.crm.model.parameter.SaCommodityParameters">
+		select any_value(g.name)as name,
+		any_value(ge.ctid)as ctid,
+		any_value(g.gid) as gid,
+		any_value(ge.mfid) as mfid,
+		any_value(year(cg.cg_shipmt_date))as year,
+		13 as month,
+		IFNULL(SUM(cg.cg_sales_volume),0)
+		as quantity
+		from
+		contract
+		c
+		INNER JOIN
+		groups g on g.gid=c.gid
+		INNER JOIN contract_grade
+		cg on
+		cg.coid=c.coid
+		INNER JOIN contract_purchase cp on cp.cgid=cg.cgid
+		INNER
+		JOIN grade ge
+		on ge.geid=cg.geid
+		where
+		year(cg.cg_shipmt_date)=#{year}
+		and c.status=0
+		and g.status=0 and
+		cg.cg_status=0 and cp.cp_status=0
+		<if test="ctid!=null">
+			and ge.ctid=#{ctid}
+		</if>
+		<if test="mfid!=null">
+			and ge.mfid=#{mfid}
+		</if>
+		<if test="gid!=null">
+			and g.gid=#{gid}
+		</if>
+		GROUP BY
+		month,ge.ctid,ge.mfid,g.gid
+		ORDER BY
+		year asc
+	</select>
+	<select id="getSaCommodityDetailInfo" resultMap="BaseResultMap">
+		select * from
+		sa_commodity_detail s where s.ctid=#{ctid}
+		and s.mfid=#{mfid} and
+		s.scd_year=#{year} and s.cu_name=#{name} and s.scd_month=#{month}
+		LIMIT 1
+	</select>
+	<select id="getCommodityAnalysisCustomer" parameterType="map"
+		resultType="com.plastech.crm.model.vo.SaCommodityCustomerView">
+		SELECT
+		any_value(scd.ctid) as ctid,
+		any_value(scd.mfid) as mfid,
+		any_value(scd.cu_name) as
+		customerName,
+		any_value(sum(scd.purchase_quantity)) as purchaseQuantity
+		FROM
+		sa_commodity_detail
+		scd
+		WHERE
+		scd.ctid = #{ctid}
+		<if test="mfid!=null">
+			and scd.mfid = #{mfid}
+		</if>
+		and scd.scd_month=13
+		AND scd_year = #{year}
+		<if test="searchkey!=null">
+			and scd.cu_name like #{searchkey}
+		</if>
+		GROUP BY scd.cu_name
+	</select>
+	<select id="getCustomerStatistics" parameterType="map"
+		resultMap="StatisticsResultMap">
+		SELECT
+		any_value(concat('0',scd.scd_month)) as month,
+		any_value(concat(scd.scd_year,'-',scd.scd_month)) as yearMonth,
+		any_value(sum(scd.purchase_quantity)) as salesTotal,
+		any_value(scd.scd_year) as year,
+		any_value(scd.ctid) as ctid,
+		any_value(scd.mfid) as mfid,
+		any_value(scd.cu_name) as name
+		FROM
+		sa_commodity_detail scd
+		WHERE
+		scd.ctid =
+		#{ctid}
+		<if test="mfid!=null">
+			and scd.mfid = #{mfid}
+		</if>
+		and scd.scd_month!=13
+		AND scd.cu_name = #{cuName}
+		AND scd.scd_year
+		=#{year}
+		GROUP BY scd.scd_month, scd.cu_name
+		<if test="mfid==null">
+			,scd.mfid
+		</if>
+	</select>
+	<select id="getTotalPurchases" resultType="com.plastech.crm.model.vo.SalesAnalysisView">
+		select scd.purchase_quantity FROM
+		sa_commodity_detail scd
+		WHERE
+		scd.ctid
+		= #{ctid}
+		<if test="mfid!=null">
+			AND scd.mfid = #{mfid}
+		</if>
+		AND scd.cu_name = #{cuName}
+		AND scd.scd_year = #{year}
+		and
+		scd.scd_month=13
+	</select>
+	<select id="checkSaCommodityDetail" resultMap="BaseResultMap">
+		select * from
+		sa_commodity_detail LIMIT 1
+	</select>
+	<select id="getCommodityContractSynchronizationData"
+		resultType="com.plastech.crm.model.vo.SynchronousCommodityDataView">
+		select any_value(g.name)as gName,
+		any_value(ge.ctid)as ctid,
+		any_value(ge.mfid) as mfid,
+		any_value(year(cg.cg_shipmt_date))as year,
+		any_value(month(cg.cg_shipmt_date)) as month,
+		IFNULL(SUM(cg.cg_sales_volume),0) as salesTotal
+		from contract c
+		INNER
+		JOIN groups g on g.gid=c.gid
+		INNER JOIN contract_grade cg on
+		cg.coid=c.coid
+		INNER JOIN contract_purchase cp on cp.cgid=cg.cgid
+		INNER
+		JOIN grade ge on ge.geid=cg.geid
+		where year(cg.cg_shipmt_date)=#{year}
+		and
+		month(cg.cg_shipmt_date)=#{month}
+		and c.status=0 and g.status=0 and
+		cg.cg_status=0 and cp.status=0
+		and c.gid=#{gid}
+		GROUP BY
+		month,ge.ctid,ge.mfid,g.gid
+		ORDER BY year asc
+	</select>
+	<select id="getCommodityContractSynchronizationDataYear"
+		resultType="com.plastech.crm.model.vo.SynchronousCommodityDataView">
+		select any_value(g.name)as gName,
+		any_value(ge.ctid)as ctid,
+		any_value(ge.mfid) as mfid,
+		any_value(year(cg.cg_shipmt_date))as year,
+		13 as month,
+		IFNULL(SUM(cg.cg_sales_volume),0) as salesTotal
+		from
+		contract
+		c
+		INNER
+		JOIN groups g on g.gid=c.gid
+		INNER JOIN contract_grade cg
+		on
+		cg.coid=c.coid
+		INNER JOIN contract_purchase cp on cp.cgid=cg.cgid
+		INNER
+		JOIN grade ge on ge.geid=cg.geid
+		where
+		year(cg.cg_shipmt_date)=#{year}
+		and
+		and c.status=0 and g.status=0 and
+		cg.cg_status=0 and cp.status=0
+		and c.gid=#{gid}
+		GROUP
+		BY
+		ge.ctid,ge.mfid,g.gid
+		ORDER BY year asc
+	</select>
+	<delete id="deleteSaCommodityDetailByYearAndMonth">
+		delete from sa_commodity_detail where
+		scd_year=#{year}
+		and scd_month=#{month} and ctid=#{ctid} and
+		mfid=#{mfid} and gid=#{gid}
+	</delete>
+	<delete id="deleteSaCommodityDetailByScdid">
+		delete
+		FROM
+		sa_commodity_detail
+		WHERE
+		scd_year = #{year}
+		AND scd_month =
+		#{month}
+		and
+		scdid not IN
+		<foreach collection="list" item="id" open="(" close=")"
+			separator=",">
+			#{id}
+		</foreach>
+	</delete>
+</mapper>

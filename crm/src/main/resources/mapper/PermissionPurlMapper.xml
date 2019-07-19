@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.plastech.crm.mapper.PermissionPurlMapper" >
+  <resultMap id="BaseResultMap" type="com.plastech.crm.model.PermissionPurl" >
+    <!--
+      WARNING - @mbg.generated
+    -->
+    <id column="pmid" property="pmid" jdbcType="BIGINT" />
+    <id column="puid" property="puid" jdbcType="BIGINT" />
+    <result column="note" property="note" jdbcType="VARCHAR" />
+  </resultMap>
+</mapper>

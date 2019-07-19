@@ -1,0 +1,283 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.plastech.crm.mapper.SaSalesStMapper">
+	<resultMap id="BaseResultMap" type="com.plastech.crm.model.SaSalesSt">
+		<!-- WARNING - @mbg.generated -->
+		<id column="ssid" property="ssid" jdbcType="BIGINT" />
+		<result column="year" property="year" jdbcType="CHAR" />
+		<result column="month" property="month" jdbcType="CHAR" />
+		<result column="sales_total" property="salesTotal" jdbcType="DOUBLE" />
+		<result column="group_count" property="groupCount" jdbcType="INTEGER" />
+		<result column="commodity_count" property="commodityCount"
+			jdbcType="INTEGER" />
+		<result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
+		<result column="last_update_time" property="lastUpdateTime"
+			jdbcType="TIMESTAMP" />
+		<result column="note" property="note" jdbcType="VARCHAR" />
+	</resultMap>
+
+	<select id="getSalesStByMonth" resultMap="BaseResultMap">
+		SELECT
+		any_value(year
+		(cg.cg_shipmt_date))as year,
+		any_value(month (cg.cg_shipmt_date)) AS
+		month,
+		SUM(cg.cg_sales_volume) as sales_total,
+		COUNT(DISTINCT c.gid) as
+		group_count,
+		COUNT(DISTINCT g.ctid) as commodity_count
+		FROM
+		contract c
+		INNER JOIN contract_grade cg ON c.coid = cg.coid
+		INNER JOIN grade g on
+		g.geid=cg.geid
+		WHERE
+		c.status=0 and cg.cg_status=0 and g.status=0 and
+		YEAR (cg.cg_shipmt_date) = #{year}
+		and
+		month(cg.cg_shipmt_date)=#{month}
+		GROUP
+		BY
+		MONTH
+	</select>
+
+	<select id="getSalesStByYear" resultMap="BaseResultMap">
+		SELECT
+		any_value(year
+		(cg.cg_shipmt_date))as year,
+		13 AS month,
+		SUM(cg.cg_sales_volume) as
+		sales_total,
+		COUNT(DISTINCT c.gid) as group_count,
+		COUNT(DISTINCT
+		g.ctid) as commodity_count
+		FROM
+		contract c
+		INNER JOIN contract_grade cg
+		ON c.coid = cg.coid
+		INNER JOIN grade g on g.geid=cg.geid
+		WHERE
+		c.status=0 and cg.cg_status=0 and g.status=0 and
+		YEAR
+		(cg.cg_shipmt_date) = #{year}
+		GROUP BY
+		year
+	</select>
+
+	<select id="selectByYearAndMonth" parameterType="java.lang.String"
+		resultMap="BaseResultMap">
+		select *
+		from sa_sales_st
+		where year=#{year} and
+		month=#{month}
+		limit 1
+	</select>
+
+	<select id="selectByYearInActive" parameterType="java.lang.String"
+		resultType="com.plastech.crm.model.SaSalesSt">
+		select m1.salesTotal,m2.groupCount,m3.commodityCount,'13'
+		as month,m1.year
+		from
+		(select
+		sum(cg.cg_sales_volume) as
+		salesTotal,#{year} as year
+		from contract_grade cg
+		inner join contract co
+		on (co.coid=cg.coid and co.status=0 and
+		cg.cg_status=0)
+		where
+		date_format(cg.cg_shipmt_date,'%Y')=#{year}
+		) m1
+		inner join
+		(
+		select
+		count(1) as groupCount,#{year} as year from
+		(
+		select co.gid
+		from contract
+		co
+		inner join contract_grade cg on (co.coid=cg.coid and co.status=0 and
+		cg.cg_status=0)
+		where date_format(cg.cg_shipmt_date,'%Y')=#{year}
+		group
+		by co.gid
+		) k
+		) m2 on m1.year=m2.year
+		inner join
+		(
+		select count(1) as
+		commodityCount,#{year} as year from
+		(
+		select ct.ctid
+		from contract co
+		inner join contract_grade cg on (co.coid=cg.coid and co.status=0 and
+		cg.cg_status=0)
+		inner join grade g on (g.geid=cg.geid and g.status=0)
+		inner join commodity ct on (g.ctid=ct.ctid and ct.status=0)
+		where
+		date_format(cg.cg_shipmt_date,'%Y')=#{year}
+		group by ct.ctid
+		) k
+		) m3 on
+		m3.year=m1.year
+		ORDER BY m1.salesTotal desc
+	</select>
+
+	<select id="selectByYearAndMonthInActive" parameterType="java.lang.String"
+		resultType="com.plastech.crm.model.SaSalesSt">
+		SELECT
+		SUM(cg.cg_sales_volume) AS salesTotal,
+		COUNT(DISTINCT c.gid) as groupCount,
+		COUNT(DISTINCT ct.ctid)as commodityCount,
+		13 as
+		month,
+		YEAR (cg.cg_shipmt_date) as year
+		FROM
+		contract c
+		INNER JOIN
+		contract_grade cg ON cg.coid = c.coid
+		INNER JOIN grade ge ON ge.geid =
+		cg.geid
+		INNER JOIN commodity ct ON ct.ctid = ge.ctid
+		WHERE
+		  c.`status`=0 and cg.cg_status=0 and ct.`status`=0 and
+		YEAR
+		(cg.cg_shipmt_date) = #{year}
+		GROUP BY year
+	</select>
+
+	<select id="selectSalesTotalByYearMonth" parameterType="java.lang.String"
+		resultType="java.lang.Double">
+		select sum(cg.cg_sales_total)
+		from contract_grade cg
+		inner
+		join contract co on (co.coid=cg.coid and co.status=0 and
+		cg.cg_status=0)
+		where
+		date_format(cg.cg_shipmt_date,'%Y-%m')=#{year_month}
+	</select>
+
+	<select id="selectSalesTotalByYear" parameterType="java.lang.String"
+		resultMap="BaseResultMap">
+		SELECT
+		any_value(year
+		(cg.cg_shipmt_date))as year,
+		13 AS month,
+		SUM(cg.cg_sales_volume) as
+		sales_total,
+		COUNT(DISTINCT c.gid) as
+		group_count,
+		COUNT(DISTINCT
+		g.ctid) as commodity_count
+		FROM
+		contract c
+		INNER JOIN contract_grade cg
+		ON c.coid = cg.coid
+		INNER JOIN grade g on
+		g.geid=cg.geid
+		WHERE
+		YEAR
+		(cg.cg_shipmt_date) = #{year}
+		GROUP BY
+		year
+	</select>
+
+	<select id="selectGroupCountByYearMonth" parameterType="java.lang.String"
+		resultType="java.lang.Integer">
+		select count(1) from
+		(
+		select co.gid
+		from contract co
+		inner
+		join contract_grade cg on (co.coid=cg.coid and co.status=0 and
+		cg.cg_status=0)
+		where
+		date_format(cg.cg_shipmt_date,'%Y-%m')=#{year_month}
+		group by co.gid
+		) k
+	</select>
+
+	<select id="selectGroupCountByYear" parameterType="java.lang.String"
+		resultType="java.lang.Integer">
+		select count(1) from
+		(
+		select co.gid
+		from contract co
+		inner
+		join contract_grade cg on (co.coid=cg.coid and co.status=0 and
+		cg.cg_status=0)
+		where date_format(cg.cg_shipmt_date,'%Y')=#{year}
+		group
+		by co.gid
+		) k
+	</select>
+
+	<select id="selectCommodityCountByYearMonth" parameterType="java.lang.String"
+		resultType="java.lang.Integer">
+		select count(1) from
+		(
+		select ct.ctid
+		from contract co
+		inner
+		join contract_grade cg on (co.coid=cg.coid and co.status=0 and
+		cg.cg_status=0)
+		inner join grade g on (g.geid=cg.geid and g.status=0)
+		inner join commodity ct on (g.ctid=ct.ctid and ct.status=0)
+		where
+		date_format(cg.cg_shipmt_date,'%Y-%m')=#{year_month}
+		group by ct.ctid
+		)k
+	</select>
+
+	<select id="selectCommodityCountByYear" parameterType="java.lang.String"
+		resultType="java.lang.Integer">
+		select count(1) from
+		(
+		select ct.ctid
+		from contract co
+		inner
+		join contract_grade cg on (co.coid=cg.coid and co.status=0 and
+		cg.cg_status=0)
+		inner join grade g on (g.geid=cg.geid and g.status=0)
+		inner join commodity ct on (g.ctid=ct.ctid and ct.status=0)
+		where
+		date_format(cg.cg_shipmt_date,'%Y')=#{year}
+		group by ct.ctid
+		)k
+	</select>
+
+	<select id="selectAnyData" resultMap="BaseResultMap">
+		select * from sa_sales_st
+		limit 1
+	</select>
+	<select id="getSalesYearStatisticsInfo" resultType="com.plastech.crm.model.vo.SalesAnalysisView">
+		SELECT
+		s.sales_total as annualSalesTotal,
+		s.group_count as annualGroupCount,
+		s.commodity_count as annualCommodityCount
+		FROM
+		sa_sales_st s
+		WHERE
+		s.year= #{year}
+		and s.month=13
+	</select>
+	<select id="getSalesMonthStatisticsInfo" resultType="com.plastech.crm.model.vo.SalesAnalysisDataView">
+		SELECT
+		CONCAT("0",s.`month`)as month,
+		CONCAT(s.`year`,"-",s.`month`)as
+		yearMonth,
+		any_value(s.sales_total) as salesTotal,
+		any_value(s.group_count) as groupCount,
+		any_value(s.commodity_count) as
+		commodityCount
+		FROM
+		sa_sales_st s
+		WHERE
+		s. YEAR = #{year} and s.month!=13
+		GROUP BY s.month
+	</select>
+	<select id="deleteSaSalesSt">
+	delete from sa_sales_st where year=#{year} and
+	month=#{month} 
+	</select>
+</mapper>

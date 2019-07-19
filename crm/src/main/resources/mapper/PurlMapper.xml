@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.plastech.crm.mapper.PurlMapper" >
+  <resultMap id="BaseResultMap" type="com.plastech.crm.model.Purl" >
+    <!--
+      WARNING - @mbg.generated
+    -->
+    <id column="puid" property="puid" jdbcType="BIGINT" />
+    <result column="module" property="module" jdbcType="VARCHAR" />
+    <result column="inface" property="inface" jdbcType="VARCHAR" />
+    <result column="method" property="method" jdbcType="VARCHAR" />
+    <result column="param_check" property="paramCheck" jdbcType="VARCHAR" />
+    <result column="note" property="note" jdbcType="VARCHAR" />
+    <result column="permissive" property="permissive" jdbcType="INTEGER" />
+  </resultMap>
+</mapper>

@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.plastech.crm.mapper.LoyaltyMapper">
+	<resultMap id="BaseResultMap" type="com.plastech.crm.model.Loyalty">
+		<id column="lid" property="lid" jdbcType="BIGINT" />
+		<result column="max_frequency" property="maxFrequency"
+			jdbcType="INTEGER" />
+		<result column="min_frequency" property="minFrequency"
+			jdbcType="INTEGER" />
+		<result column="duration" property="duration" jdbcType="INTEGER" />
+		<result column="name" property="name" jdbcType="VARCHAR" />
+		<result column="priority" property="priority" jdbcType="INTEGER" />
+		<result column="status" property="status" jdbcType="INTEGER" />
+		<result column="creator_time" property="creatorTime" jdbcType="TIMESTAMP" />
+		<result column="creator_id" property="creatorId" jdbcType="BIGINT" />
+		<result column="note" property="note" jdbcType="VARCHAR" />
+	</resultMap>
+	<resultMap id="LoyaltyResultMap" type="com.plastech.crm.model.vo.LoyaltyView">
+		<id column="lid" property="lid" jdbcType="BIGINT" />
+		<result column="max_frequency" property="maxFrequency"
+			jdbcType="INTEGER" />
+		<result column="min_frequency" property="minFrequency"
+			jdbcType="INTEGER" />
+		<result column="duration" property="duration" jdbcType="INTEGER" />
+		<result column="name" property="name" jdbcType="VARCHAR" />
+		<result column="priority" property="priority" jdbcType="INTEGER" />
+	</resultMap>
+	<resultMap id="BuyingFrequencyResultMap" type="com.plastech.crm.model.vo.CustomerLoyaltyView">
+		<result column="gid" property="gid" jdbcType="BIGINT" />
+		<result column="mfid" property="mfid" jdbcType="BIGINT" />
+		<collection column="{gid=gid,mfid=mfid}"
+			select="com.plastech.crm.mapper.LoyaltyMapper.selectCustomerContractPurchase"
+			property="loyaltyCount"></collection>
+	</resultMap>
+
+	<select id="getLoyaltyList" resultMap="LoyaltyResultMap">
+		select l.lid,
+		l.max_frequency,
+		l.min_frequency,
+		l.duration,
+		l.name,
+		l.priority
+		from
+		loyalty l where l.status=0
+		<if test="type==1">
+			and l.note is null
+		</if>
+		order by l.priority asc
+	</select>
+	<select id="checkLoyaltyName" resultType="Boolean">
+		SELECT
+		COUNT(l.lid)
+		FROM
+		loyalty l
+		WHERE
+		l. NAME = #{name} and l.status=0
+	</select>
+
+	<update id="updateLoyaltyBylId" parameterType="Long">
+		UPDATE loyalty AS
+		l,
+		(
+		SELECT
+		MAX(priority) + 1 mdinc
+		FROM
+		`loyalty`
+		where `status`=0
+		) b
+		SET
+		l.priority = b.mdinc
+		WHERE
+		lid=#{lid}
+	</update>
+	<select id="selectCustomerContractPurchase" resultType="com.plastech.crm.model.vo.UserPurchaseFrequencyView">
+		 <![CDATA[	
+		SELECT YEAR(cg.cg_shipmt_date) AS years,
+		 count(distinct month(cg.cg_shipmt_date)) as monthCount,
+		co.gid ,
+        g.mfid
+		FROM contract co
+		INNER JOIN contract_grade cg on cg.coid=co.coid
+        INNER JOIN grade g on g.geid=cg.geid and g.mfid=#{mfid}
+		WHERE co.gid=#{gid}
+		and YEAR (cg.cg_shipmt_date) >=
+		year(date_sub(curdate(), interval 5 year))
+		and YEAR (cg.cg_shipmt_date)<=(year(curdate())-1)
+		and co.status=0  and cg.cg_status=0 and g.status=0
+		GROUP BY years,g.mfid,co.gid
+		]]>
+	</select>
+	<select id="selectContractUserBuyingFrequency" resultMap="BuyingFrequencyResultMap">
+		select
+		c.gid,
+		g.mfid
+		from contract c
+		INNER JOIN contract_grade cg on
+		cg.coid=c.coid
+		INNER JOIN grade g on g.geid=cg.geid
+		where
+		c.`status`=0
+		and g.status=0
+		GROUP BY c.gid,mfid 
+	</select>
+	<select id="getDefaultLoyalty" resultMap="BaseResultMap">
+		select * from loyalty l
+		where l.note="default" and l.status=0
+	</select>
+	<select id="getDurationParameter" resultType="com.plastech.crm.model.vo.LoyaltyDurationView">
+		select
+		max(l.duration) maxDuration,min(l.duration) as minDuration from loyalty l
+	</select>
+</mapper>

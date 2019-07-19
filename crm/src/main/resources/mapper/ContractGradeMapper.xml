@@ -1,0 +1,258 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.plastech.crm.mapper.ContractGradeMapper">
+	<resultMap id="BaseResultMap" type="com.plastech.crm.model.ContractGrade">
+		<id column="cgid" property="cgid" jdbcType="BIGINT" />
+		<id column="coid" property="coid" jdbcType="BIGINT" />
+		<result column="geid" property="geid" jdbcType="BIGINT" />
+		<result column="cg_sales_volume" property="cgSalesVolume"
+			jdbcType="DOUBLE" />
+		<result column="cg_currency_type" property="cgCurrencyType"
+			jdbcType="VARCHAR" />
+		<result column="cg_sales_unit_price" property="cgSalesUnitPrice"
+			jdbcType="DOUBLE" />
+		<result column="cg_sales_total" property="cgSalesTotal"
+			jdbcType="DOUBLE" />
+		<result column="cg_shipmt_date" property="cgShipmtDate"
+			jdbcType="VARCHAR" />
+		<result column="cg_customer_po" property="cgCustomerPo"
+			jdbcType="VARCHAR" />
+		<result column="cg_payment_terms" property="cgPaymentTerms"
+			jdbcType="VARCHAR" />
+		<result column="cg_gross_profit" property="cgGrossProfit"
+			jdbcType="DECIMAL" />
+		<result column="cg_net_profit" property="cgNetProfit" jdbcType="DECIMAL" />
+		<result column="cg_transportation_terms" property="cgTransportationTerms"
+			jdbcType="VARCHAR" />
+		<result column="cg_creator_id" property="cgCreatorId" jdbcType="BIGINT" />
+		<result column="cg_creator_time" property="cgCreatorTime"
+			jdbcType="TIMESTAMP" />
+		<result column="cg_note" property="cgNote" jdbcType="VARCHAR" />
+		<result column="cg_status" property="cgStatus" jdbcType="INTEGER" />
+	</resultMap>
+
+	<resultMap id="ContractBaseResultMap" type="com.plastech.crm.model.vo.ContractGradeView">
+		<id column="cgid" property="cgid" jdbcType="BIGINT" />
+		<result column="grade_number" property="gradeName" jdbcType="VARCHAR" />
+		<result column="commName" property="commName" jdbcType="VARCHAR" />
+		<result column="su_name" property="supName" jdbcType="VARCHAR" />
+		<result column="mfName" property="mfName" jdbcType="VARCHAR" />
+		<result column="cg_currency_type" property="cgCurrencyType"
+			jdbcType="VARCHAR" />
+		<result column="cg_sales_volume" property="salesVolume"
+			jdbcType="DOUBLE" />
+		<result column="cg_gross_profit" property="cgGrossProfit"
+			jdbcType="DOUBLE" />
+		<result column="cg_sales_unit_price" property="cgSalesUnitPrice"
+			jdbcType="DOUBLE" />
+		<result column="cg_sales_total" property="salesTotal" jdbcType="DOUBLE" />
+		<result column="cg_shipmt_date" property="shipmtDate" jdbcType="TIMESTAMP" />
+	</resultMap>
+	<resultMap id="ContractBaseDetailResultMap"
+		type="com.plastech.crm.model.parameter.AddOrUpdateContractGradeParameters">
+		<id column="cgid" property="cgid" jdbcType="BIGINT" />
+		<result column="geid" property="geid" jdbcType="BIGINT" />
+		<result column="coid" property="coid" jdbcType="BIGINT" />
+		<result column="cpid" property="cpid" jdbcType="BIGINT" />
+		<result column="suid" property="suid" jdbcType="BIGINT" />
+		<result column="cpid" property="cpid" jdbcType="BIGINT" />
+		<result column="cgid" property="cgid" jdbcType="BIGINT" />
+		<result column="coid" property="coid" jdbcType="BIGINT" />
+		<result column="cg_sales_volume" property="cgSalesVolume"
+			jdbcType="DOUBLE" />
+		<result column="cg_currency_type" property="cgCurrencyType"
+			jdbcType="VARCHAR" />
+		<result column="cg_sales_unit_price" property="cgSalesUnitPrice"
+			jdbcType="DOUBLE" />
+		<result column="cg_gross_profit" property="cgGrossProfit"
+			jdbcType="VARCHAR" />
+		<result column="cg_net_profit" property="cgNetProfit" jdbcType="VARCHAR" />
+		<result column="cg_sales_total" property="cgSalesTotal"
+			jdbcType="DOUBLE" />
+		<result column="cg_shipmt_date" property="cgShipmtDate"
+			jdbcType="TIMESTAMP" />
+		<result column="cg_customer_po" property="cgCustomerPo"
+			jdbcType="VARCHAR" />
+		<result column="cg_payment_terms" property="cgPaymentTerms"
+			jdbcType="VARCHAR" />
+		<result column="cg_transportation_terms" property="cgTransportationTerms"
+			jdbcType="VARCHAR" />
+		<result column="cp_price_currency" property="cpPriceCurrency"
+			jdbcType="VARCHAR" />
+		<result column="cp_supplier_po" property="cpSupplierPo"
+			jdbcType="VARCHAR" />
+		<result column="cp_payment_terms" property="cpPaymentTerms"
+			jdbcType="VARCHAR" />
+		<result column="cp_transportation_terms" property="cpTransportationTerms"
+			jdbcType="VARCHAR" />
+		<result column="cp_logistics_currency" property="cpLogisticsCurrency"
+			jdbcType="VARCHAR" />
+		<result column="cp_others_currency" property="cpOthersCurrency"
+			jdbcType="VARCHAR" />
+		<result column="cp_tool_number" property="cpToolNumber"
+			jdbcType="VARCHAR" />
+		<result column="cp_route" property="cpRoute" jdbcType="VARCHAR" />
+		<result column="su_name" property="suName" jdbcType="VARCHAR" />
+		<result column="concatName" property="concatName" jdbcType="VARCHAR" />
+		<result column="cp_purchase_prices" property="cpPurchasePrices"
+			jdbcType="DOUBLE" />
+		<result column="cp_purchase_cost" property="cpPurchaseCost"
+			jdbcType="DOUBLE" />
+		<result column="cp_logistics_fee" property="cpLogisticsFee"
+			jdbcType="DOUBLE" />
+		<result column="cp_other_costs" property="cpOtherCosts"
+			jdbcType="DOUBLE" />
+		<result column="cp_purchase_quantity" property="cpPurchaseQuantity"
+			jdbcType="DOUBLE" />
+	</resultMap>
+
+	<select id="selectContractGradeList" resultMap="ContractBaseResultMap">
+		SELECT
+		cg.cgid,
+		g.grade_number,
+		ct.`name` as commName,
+		s.su_name,
+		mf.name
+		as mfName,
+		cg.cg_sales_volume,
+		cg.cg_sales_total,
+		cg.cg_gross_profit,
+		cg.cg_shipmt_date,
+		cg.cg_sales_unit_price,
+		cg.cg_currency_type
+		FROM
+		contract_grade cg
+		inner JOIN contract_purchase cp on cg.cgid=cp.cgid
+		inner JOIN grade g on g.geid = cg.geid
+		inner JOIN commodity ct on
+		ct.ctid= g.ctid
+		INNER JOIN manufacturer mf on mf.mfid=g.mfid
+		LEFT JOIN
+		supplier s
+		on s.suid =cp.suid
+		WHERE
+		cg.coid = #{coid}
+		<if test="endShipmtDate!=null">
+			and #{endShipmtDate}>=cg.cg_shipmt_date
+		</if>
+		<if test="startShipmtDate!=null">
+			and cg.cg_shipmt_date>=#{startShipmtDate}
+		</if>
+		order by cg.cg_shipmt_date
+		desc
+	</select>
+	<select id="getContractGrossSalesByCoid" resultType="com.plastech.crm.model.vo.ContractGrossSalesView">
+		SELECT
+		sum(cg.cg_sales_total) AS salesTotal,
+		sum(cg.cg_net_profit) AS
+		netProfit,
+		sum(cg.cg_gross_profit) AS grossProfit
+		FROM
+		contract_grade cg
+		WHERE
+		cg.coid = #{coid} and cg.cg_status=0
+	</select>
+	<select id="getContractBaseDetailList" resultMap="ContractBaseDetailResultMap">
+		SELECT
+		cg.cgid,
+		cg.coid,
+		cg.geid,
+		cg.cg_sales_volume,
+		cg.cg_currency_type,
+		cg.cg_sales_unit_price,
+		cg.cg_sales_total,
+		cg.cg_shipmt_date,
+		cg.cg_customer_po,
+		cg.cg_payment_terms,
+		cg.cg_transportation_terms,
+		cg.cg_gross_profit,
+		cg.cg_net_profit,
+		cp.cpid,
+		cp.cgid,
+		cp.suid,
+		cp.cp_price_currency,
+		cp.cp_purchase_prices,
+		cp.cp_purchase_quantity,
+		cp.cp_purchase_cost,
+		cp.cp_supplier_po,
+		cp.cp_payment_terms,
+		cp.cp_transportation_terms,
+		cp.cp_logistics_currency,
+		cp.cp_logistics_fee,
+		cp.cp_others_currency,
+		cp.cp_other_costs,
+		cp.cp_route,
+		cp.cp_tool_number,
+		s.su_name ,
+		concat_ws
+		('#',g.grade_number,ct.`name`
+		,mf.`name`) as concatName
+		from
+		contract_grade cg
+		INNER JOIN
+		contract_purchase cp on cp.cgid=cg.cgid
+		INNER JOIN grade g on g.geid=cg.geid
+		INNER JOIN
+		commodity ct ON ct.ctid
+		=
+		g.ctid
+		INNER JOIN manufacturer mf on mf.mfid =g.mfid
+		LEFT JOIN supplier
+		s on s.suid = cp.suid
+		where cg.coid =
+		#{coid}
+	</select>
+	<select id="checkContractGrade" resultType="Boolean">
+		select COUNT(1) from
+		contract_grade cg where cg.geid=#{geid} and cg.cg_status=0
+	</select>
+
+	<select id="selectAnyNormalData" resultMap="BaseResultMap">
+		select *
+		from
+		contract_grade cg
+		inner join contract co on co.coid=cg.coid
+		where
+		cg.cg_status=0 and
+		co.status=0
+		limit 1
+	</select>
+
+	<select id="selectEarliestContractGradeShipmt" resultType="java.lang.String">
+		select cg.cg_shipmt_date
+		from contract_grade cg
+		inner join contract co
+		on co.coid=cg.coid
+		where
+		cg.cg_status=0 and co.status=0
+		order by
+		cg.cg_shipmt_date
+		limit 1
+	</select>
+
+	<select id="selectLatestContractGradeShipmt" resultType="java.lang.String">
+		select
+		cg.cg_shipmt_date
+		from contract_grade cg
+		inner join contract co on
+		co.coid=cg.coid
+		where
+		cg.cg_status=0 and co.status=0
+		order by
+		cg.cg_shipmt_date DESC
+		limit 1
+	</select>
+	<select id="getImportContractGradeByCoidAndGeid" resultMap="BaseResultMap">
+		SELECT
+		*
+		FROM
+		contract_grade cg
+		INNER JOIN grade g on g.geid=cg.geid
+		WHERE
+		cg.cg_status = 0
+		AND
+		cg.coid = #{coid}
+		AND g.grade_number = #{gNumber}
+		ORDER BY cg.cg_creator_time ,cgid ASC
+	</select>
+</mapper>

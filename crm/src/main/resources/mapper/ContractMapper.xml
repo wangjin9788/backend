@@ -1,0 +1,394 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.plastech.crm.mapper.ContractMapper">
+	<resultMap id="BaseResultMap" type="com.plastech.crm.model.Contract">
+		<!-- WARNING - @mbg.generated -->
+		<id column="coid" property="coid" jdbcType="BIGINT" />
+		<result column="gid" property="gid" jdbcType="BIGINT" />
+		<result column="cuid" property="cuid" jdbcType="BIGINT" />
+		<result column="uid" property="uid" jdbcType="BIGINT" />
+		<result column="number" property="number" jdbcType="VARCHAR" />
+		<result column="gross_profit" property="grossProfit" jdbcType="DECIMAL" />
+		<result column="gross_sales" property="grossSales" jdbcType="DECIMAL" />
+		<result column="total_net_profit" property="totalNetProfit"
+			jdbcType="DECIMAL" />
+		<result column="signing_time" property="signingTime" jdbcType="VARCHAR" />
+		<result column="status" property="status" jdbcType="INTEGER" />
+		<result column="creator_id" property="creatorId" jdbcType="BIGINT" />
+		<result column="creator_time" property="creatorTime" jdbcType="TIMESTAMP" />
+		<result column="update_id" property="updateId" jdbcType="BIGINT" />
+		<result column="update_time" property="updateTime" jdbcType="TIMESTAMP" />
+		<result column="note" property="note" jdbcType="VARCHAR" />
+	</resultMap>
+	<resultMap id="SynchronizationResultMap"
+		type="com.plastech.crm.model.parameter.AddOrUpdateContractParameters">
+		<!-- WARNING - @mbg.generated -->
+		<result column="gid" property="gid" jdbcType="BIGINT" />
+		<result column="cuid" property="cuid" jdbcType="BIGINT" />
+		<result column="uid" property="uid" jdbcType="BIGINT" />
+		<result column="number" property="number" jdbcType="VARCHAR" />
+		<result column="gross_profit" property="grossProfit" jdbcType="DECIMAL" />
+		<result column="gross_sales" property="grossSales" jdbcType="DECIMAL" />
+		<collection column="coid"
+			select="com.plastech.crm.mapper.ContractGradeMapper.getContractBaseDetailList"
+			property="contractList">
+
+		</collection>
+	</resultMap>
+	<resultMap id="ContractResultMap" type="com.plastech.crm.model.vo.ContractListView">
+		<id column="coid" property="coid" jdbcType="BIGINT" />
+		<result column="number" property="number" jdbcType="VARCHAR" />
+		<result column="cu_name" property="cuName" jdbcType="VARCHAR" />
+		<result column="managerName" property="managerName" jdbcType="VARCHAR" />
+		<result column="gName" property="gName" jdbcType="VARCHAR" />
+		<result column="signing_time" property="signingTime" jdbcType="VARCHAR" />
+		<result column="gross_profit" property="grossProfit" jdbcType="DOUBLE" />
+		<result column="gross_sales" property="grossSales" jdbcType="DOUBLE" />
+		<result column="total_net_profit" property="totalNetProfit"
+			jdbcType="DOUBLE" />
+		<collection
+			column="{coid=coid,endShipmtDate=endShipmtDate,startShipmtDate=startShipmtDate}"
+			select="com.plastech.crm.mapper.ContractGradeMapper.selectContractGradeList"
+			property="contraList"></collection>
+	</resultMap>
+
+	<resultMap id="ContractexpandingResultMap" type="com.plastech.crm.model.vo.ContractDetailView">
+		<id column="cgid" property="cgid" jdbcType="BIGINT" />
+		<result column="cg_customer_po" property="cgCustomerPo"
+			jdbcType="VARCHAR" />
+		<result column="cg_sales_unit_price" property="cgSalesUnitPrice"
+			jdbcType="DOUBLE" />
+		<result column="cg_sales_volume" property="cgSalesVolume"
+			jdbcType="DOUBLE" />
+		<result column="cg_sales_total" property="cgSalesTotal"
+			jdbcType="DOUBLE" />
+		<result column="cg_shipmt_date" property="cgShipmtDate"
+			jdbcType="TIMESTAMP" />
+		<result column="cg_payment_terms" property="cgPaymentTerms"
+			jdbcType="VARCHAR" />
+		<result column="cg_gross_profit" property="cgGrossProfit"
+			jdbcType="DOUBLE" />
+		<result column="cg_net_profit" property="cgNetProfit" jdbcType="DOUBLE" />
+		<result column="cp_purchase_prices" property="cpPurchasePrices"
+			jdbcType="DOUBLE" />
+		<result column="cp_supplier_po" property="cpSupplierPo"
+			jdbcType="VARCHAR" />
+		<result column="su_name" property="suName" jdbcType="VARCHAR" />
+		<result column="cp_purchase_quantity" property="cpPurchaseQuantity"
+			jdbcType="DOUBLE" />
+		<result column="cp_purchase_cost" property="cpPurchaseCost"
+			jdbcType="DOUBLE" />
+		<result column="cp_payment_terms" property="cpPaymentTerms"
+			jdbcType="VARCHAR" />
+		<result column="cp_logistics_fee" property="cpLogisticsFee"
+			jdbcType="DOUBLE" />
+		<result column="cp_other_costs" property="cpOtherCosts"
+			jdbcType="DOUBLE" />
+	</resultMap>
+	<resultMap id="ContractBaseDetailResultMap"
+		type="com.plastech.crm.model.vo.ContractBaseDetailView">
+		<id column="coid" property="coid" jdbcType="BIGINT" />
+		<result column="gid" property="gid" jdbcType="BIGINT" />
+		<result column="cuid" property="cuid" jdbcType="BIGINT" />
+		<result column="smid" property="smid" jdbcType="BIGINT" />
+		<result column="number" property="number" jdbcType="VARCHAR" />
+		<result column="gross_sales" property="grossSales" jdbcType="VARCHAR" />
+		<result column="gross_profit" property="grossProfit" jdbcType="VARCHAR" />
+		<result column="total_net_profit" property="netProfit"
+			jdbcType="DOUBLE" />
+		<result column="signing_time" property="signingTime" jdbcType="TIMESTAMP" />
+		<result column="cu_name" property="cuName" jdbcType="VARCHAR" />
+		<result column="gName" property="gName" jdbcType="VARCHAR" />
+		<result column="smName" property="managerName" jdbcType="VARCHAR" />
+		<collection column="coid"
+			select="com.plastech.crm.mapper.ContractGradeMapper.getContractBaseDetailList"
+			property="contractList"></collection>
+	</resultMap>
+	<resultMap id="ImportContractResultMap"
+		type="com.plastech.crm.model.vo.ImportContractView">
+		<id column="coid" property="coid" jdbcType="BIGINT" />
+		<result column="cuid" property="cuid" jdbcType="BIGINT" />
+		<result column="uid" property="uid" jdbcType="BIGINT" />
+		<result column="number" property="number" jdbcType="VARCHAR" />
+		<result column="cuName" property="cuName" jdbcType="VARCHAR" />
+		<result column="uName" property="uName" jdbcType="VARCHAR" />
+		<collection column="coid"
+			select="com.plastech.crm.mapper.GradeMapper.getImportGradeByCoid"
+			property="gradeList"></collection>
+	</resultMap>
+	<select id="searchContractList" parameterType="map"
+		resultMap="ContractResultMap">
+		SELECT
+		c.coid,
+		any_value (c.number) AS number,
+		any_value (k.cu_name) AS
+		cu_name,
+		any_value (k.uname) AS managerName,
+		any_value (k.shipmtDate) AS
+		shipmtDate,
+		any_value(#{endShipmtDate}) as endShipmtDate,
+		any_value(#{startShipmtDate}) as startShipmtDate
+		FROM
+		contract c
+		INNER
+		JOIN
+		(
+		SELECT
+		IFNULL(cg.coid, 0) AS coid,
+		cg.cg_shipmt_date AS
+		shipmtDate,
+		cu.cu_name,
+		u.uname
+		FROM
+		contract_grade cg
+		INNER JOIN grade g ON g.geid =
+		cg.geid
+		INNER JOIN contract_purchase cp ON cp.cgid = cg.cgid
+		INNER JOIN
+		contract co
+		on co.coid=cg.coid
+		LEFT JOIN customer cu ON cu.cuid =
+		co.cuid
+		LEFT JOIN
+		user u ON u.uid = co.uid
+		WHERE
+		cg.cg_status =0
+		<if test="searchKey!=null">
+			AND (
+			g.grade_number LIKE #{searchKey}
+			OR co.number LIKE
+			#{searchKey}
+			OR u.uname LIKE #{searchKey}
+			OR cu.cu_name LIKE
+			#{searchKey}
+			)
+		</if>
+		<if test="endShipmtDate!=null">
+			and #{endShipmtDate}>=cg.cg_shipmt_date
+		</if>
+		<if test="startShipmtDate!=null">
+			and cg.cg_shipmt_date>=#{startShipmtDate}
+		</if>
+		<if test="suid!=null">
+			and cp.suid=#{suid}
+		</if>
+		) as k on
+		<choose>
+			<when
+				test="searchKey!=null or endShipmtDate!=null or  startShipmtDate!=null or suid!=null">
+				c.coid=k.coid
+			</when>
+			<otherwise>
+				k.coid=c.coid
+			</otherwise>
+		</choose>
+		where c.status=0
+		GROUP BY c.coid
+		ORDER BY
+		shipmtDate desc
+	</select>
+	<update id="updateContractGossSalesAndNetProfitByCoid">
+		UPDATE contract
+		SET gross_sales =#{salesTotal},
+		total_net_profit=#{netProfit},
+		gross_profit=#{grossProfit}
+		where
+		coid=#{coid}
+	</update>
+
+	<select id="selectByContractNumber" parameterType="java.lang.String"
+		resultMap="BaseResultMap">
+		select * from contract
+		where number = #{number}
+		limit 1
+	</select>
+
+	<delete id="deleteGradeByCoid" parameterType="java.lang.Long">
+		delete from
+		contract_grade
+		where coid=#{coid}
+	</delete>
+
+	<delete id="deletePurchaseByCoid" parameterType="java.lang.Long">
+		delete cp
+		from
+		contract_purchase cp
+		inner join contract_grade cg on cg.cgid=cp.cgid
+		where cg.coid=#{coid}
+	</delete>
+
+	<select id="expandingContractListByCgId" parameterType="Long"
+		resultMap="ContractexpandingResultMap">
+		SELECT
+		cg.cgid,
+		cg.cg_customer_po,
+		cg.cg_sales_unit_price,
+		cg.cg_sales_volume,
+		cg.cg_sales_total,
+		cg.cg_shipmt_date,
+		cg.cg_payment_terms,
+		cg.cg_gross_profit,
+		cg.cg_net_profit,
+		cp.cp_supplier_po,
+		cp.cp_purchase_prices,
+		cp.cp_purchase_quantity,
+		cp.cp_purchase_cost,
+		cp.cp_payment_terms,
+		cp.cp_logistics_fee,
+		cp.cp_other_costs,
+		su.su_name
+		FROM
+		contract_grade cg
+		LEFT JOIN
+		contract_purchase cp ON cp.cgid = cg.cgid
+		LEFT JOIN supplier su ON
+		su.suid = cp.suid
+		WHERE
+		cg.cgid =#{cgid}
+	</select>
+	<select id="getContractBaseDetail" resultMap="ContractBaseDetailResultMap">
+		SELECT
+		c.coid,
+		c.gid,
+		c.cuid,
+		c.uid,
+		c.number,
+		c.gross_sales,
+		c.gross_profit,
+		c.total_net_profit,
+		c.signing_time,
+		cu.cu_name,
+		g. name as gName,
+		u.uname
+		AS smName
+		FROM
+		contract c
+		LEFT JOIN customer
+		cu ON cu.cuid =
+		c.cuid
+		LEFT
+		JOIN groups g ON g.gid = c.gid
+		LEFT JOIN
+		user u ON
+		u.uid = c.uid
+		where
+		c.coid=#{coid}
+		and c.status=0 and g.status=0
+	</select>
+	<select id="checkContractNumber" resultType="Long">
+		SELECT
+		c.coid
+		FROM
+		contract c
+		WHERE
+		c.number = #{number}
+		and c.status=0
+	</select>
+	<update id="updateContractGradeAndPurchaseByCoid">
+		UPDATE contract_grade cg,
+		contract_purchase cp
+		SET
+		cg.cg_status =-1,
+		cp.cp_status = cg.cg_status
+		WHERE
+		cp.cgid = cg.cgid
+		AND
+		cg.coid = #{coid}
+	</update>
+	<select id="getContractInfoByCoid" resultMap="SynchronizationResultMap">
+		SELECT
+		c.coid,
+		c.gid,
+		c.cuid,
+		c.uid,
+		c.number
+		FROM
+		contract
+		c
+		WHERE
+		c.coid =
+		#{coid}
+	</select>
+	<select id="exportContract" resultType="com.plastech.crm.model.vo.ContractExportView">
+		SELECT
+		cu.cu_name as
+		cuName,
+		g.`name` as gName,
+		co.number as coNumber,
+		ge.grade_number as
+		geNumber,
+		ct.`name` as ctName,
+		mf.`name` as mfName,
+		cg.cg_sales_volume as
+		salesVolume,
+		cg.cg_shipmt_date as shipmtDate,
+		cg.cg_sales_unit_price as
+		salesUnitPrice,
+		cg.cg_sales_total as salesTotal,
+		cg.cg_payment_terms as
+		cgPaymentTerms ,
+		cg.cg_transportation_terms as transportationTerms ,
+		cp.cp_purchase_prices as purchasePrices,
+		cp.cp_purchase_cost as
+		purchaseCost,
+		cp.cp_payment_terms as cpPaymentTerms,
+		cp.cp_transportation_terms as cpTransportationTerms,
+		su.su_name as
+		suName,
+		cg.cg_gross_profit as grossProfit,
+		cg.cg_net_profit as
+		netProfit,
+		cp.cp_logistics_fee as logistics,
+		cp.cp_other_costs
+		cpOtherCosts,
+		u.uname,
+		cg.cg_currency_type as currencyType
+		FROM
+		contract
+		co
+		INNER JOIN customer cu ON cu.cuid = co.cuid
+		INNER JOIN groups g ON
+		g.gid = co.gid
+		INNER JOIN contract_grade cg ON cg.coid = co.coid
+		INNER
+		JOIN grade ge ON ge.geid = cg.geid
+		INNER JOIN commodity ct ON ct.ctid =
+		ge.ctid
+		INNER JOIN manufacturer mf ON mf.mfid = ge.mfid
+		INNER JOIN
+		contract_purchase cp ON cp.cgid = cg.cgid
+		LEFT JOIN supplier su ON
+		su.suid = cp.suid
+		INNER JOIN user u ON u.uid = co.uid
+		WHERE
+		co.`status` =
+		0
+		AND cg.cg_status = 0
+		AND cp.cp_status = 0
+		AND ge.`status` = 0
+		AND
+		ct.`status` = 0
+		order by cg.cg_shipmt_date
+	</select>
+	<update id="updateContractByCuid">
+		update contract set gid=#{gid} where cuid=#{cuid}
+	</update>
+	<select id="isImportContractNumberNotExist" resultMap="ImportContractResultMap">
+		SELECT
+		c.coid,
+		c.number,
+		c.cuid,
+		cu.cu_name AS cuName,
+		u.uid,
+		u.uName
+		FROM
+		contract c
+		INNER JOIN customer cu ON cu.cuid = c.cuid
+		INNER JOIN user u ON u.uid = c.uid
+		WHERE
+		c.`status` = 0
+		AND cu.`status` = 0
+		AND u.`ustatus` = 0
+		and c.number=#{contNo}
+	</select>
+</mapper>

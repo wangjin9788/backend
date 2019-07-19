@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.plastech.crm.mapper.LinkmanMapper">
+	<resultMap id="BaseResultMap" type="com.plastech.crm.model.Linkman">
+		<id column="lkid" property="lkid" jdbcType="BIGINT" />
+		<result column="name" property="name" jdbcType="VARCHAR" />
+		<result column="status" property="status" jdbcType="INTEGER" />
+		<result column="lk_position" property="lkPosition" jdbcType="VARCHAR" />
+		<result column="lk_area" property="lkArea" jdbcType="VARCHAR" />
+		<result column="lk_phone" property="lkPhone" jdbcType="VARCHAR" />
+		<result column="lk_mail" property="lkMail" jdbcType="VARCHAR" />
+		<result column="lk_tags" property="lkTags" jdbcType="VARCHAR" />
+		<result column="note" property="note" jdbcType="VARCHAR" />
+		<result column="creator_id" property="creatorId" jdbcType="BIGINT" />
+		<result column="creator_time" property="creatorTime" jdbcType="TIMESTAMP" />
+		<result column="last_update_id" property="lastUpdateId"
+			jdbcType="BIGINT" />
+		<result column="last_update_time" property="lastUpdateTime"
+			jdbcType="TIMESTAMP" />
+	</resultMap>
+	<resultMap type="com.plastech.crm.model.vo.LinkmanView" id="LinkmanResultMap">
+		<result column="lkid" property="lkid" jdbcType="BIGINT" />
+		<result column="name" property="name" jdbcType="VARCHAR" />
+		<result column="lk_position" property="lkPosition" jdbcType="VARCHAR" />
+		<result column="lk_area" property="lkArea" jdbcType="VARCHAR" />
+		<result column="lk_phone" property="lkPhone" jdbcType="VARCHAR" />
+		<result column="lk_mail" property="lkMail" jdbcType="VARCHAR" />
+		<result column="lk_tags" property="lkTags" jdbcType="VARCHAR" />
+		<result column="note" property="note" jdbcType="VARCHAR" />
+	</resultMap>
+	<select id="getSupplierLinkmanDetail" resultMap="LinkmanResultMap">
+		SELECT
+		l.lkid,
+		l.name,
+		l.lk_position,
+		l.lk_area,
+		l.lk_phone,
+		l.lk_mail,
+		l.lk_tags,
+		l.note
+		FROM
+		middle_supplier_linkman msl
+		INNER JOIN linkman l ON l.lkid =
+		msl.lkid
+		WHERE
+		msl.suid = #{suid}
+	</select>
+	<select id="getCustomerLinkmanDetail" resultMap="LinkmanResultMap">
+		SELECT
+		l.lkid,
+		l.name,
+		l.lk_position,
+		l.lk_area,
+		l.lk_phone,
+		l.lk_mail,
+		l.lk_tags,
+		l.note
+		FROM
+		middle_customer_linkman mcl
+		INNER JOIN linkman l ON l.lkid =
+		mcl.lkid
+		WHERE
+		mcl.cuid =#{cuid}
+	</select>
+	<select id="getSupplierLinkmanCountBySuid" resultType="Integer">
+		SELECT
+		COUNT(1)
+		FROM
+		middle_supplier_linkman msl
+		WHERE
+		msl.suid = #{suid};
+	</select>
+	<select id="getCustomerLinkmanCountByCuid" resultType="Integer">
+		SELECT
+		COUNT(1)
+		FROM
+		middle_customer_linkman mcl
+		WHERE
+		mcl.cuid = #{cuid};
+	</select>
+</mapper>

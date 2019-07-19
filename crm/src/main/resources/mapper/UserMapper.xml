@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.plastech.crm.mapper.UserMapper">
+	<resultMap id="BaseResultMap" type="com.plastech.crm.model.User">
+		<!-- WARNING - @mbg.generated -->
+		<id column="uid" property="uid" jdbcType="BIGINT" />
+		<result column="uname" property="uname" jdbcType="VARCHAR" />
+		<result column="uphone" property="uphone" jdbcType="VARCHAR" />
+		<result column="umail" property="umail" jdbcType="VARCHAR" />
+		<result column="position" property="position" jdbcType="VARCHAR" />
+		<result column="rolename" property="rolename" jdbcType="VARCHAR" />
+		<result column="ustatus" property="ustatus" jdbcType="INTEGER" />
+
+		<result column="unumber" property="unumber" jdbcType="VARCHAR" />
+		<result column="pwd" property="pwd" jdbcType="VARCHAR" />
+		<result column="area" property="area" jdbcType="VARCHAR" />
+		<result column="roleid" property="roleid" jdbcType="BIGINT" />
+		<result column="ucode" property="ucode" jdbcType="VARCHAR" />
+		<result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
+		<result column="create_id" property="createId" jdbcType="BIGINT" />
+		<result column="note" property="note" jdbcType="VARCHAR" />
+	</resultMap>
+	<resultMap id="UserResultMap" type="com.plastech.crm.model.vo.UserView">
+		<id column="uid" property="uid" jdbcType="BIGINT" />
+		<result column="unumber" property="unumber" jdbcType="VARCHAR" />
+		<result column="uname" property="uname" jdbcType="VARCHAR" />
+		<result column="uphone" property="uphone" jdbcType="VARCHAR" />
+		<result column="umail" property="umail" jdbcType="VARCHAR" />
+		<result column="position" property="position" jdbcType="VARCHAR" />
+		<result column="rolename" property="rolename" jdbcType="VARCHAR" />
+		<result column="ustatus" property="ustatus" jdbcType="INTEGER" />
+		<result column="roleid" property="roleid" jdbcType="BIGINT" />
+		<result column="ucode" property="ucode" jdbcType="VARCHAR" />
+	</resultMap>
+
+	<select id="selectByUcode" parameterType="java.lang.String"
+		resultMap="BaseResultMap">
+		select * from user
+		where ucode=#{ucode}
+		limit 1
+	</select>
+	<select id="getUserInfoByName" resultMap="BaseResultMap">
+		select * from user
+		where uname=#{name}
+		limit 1
+	</select>
+	<select id="searchUserList" parameterType="map" resultMap="UserResultMap">
+		SELECT
+		u.uid,
+		u.uname,
+		u.uphone,
+		u.umail,
+		u.position,
+		u.roleid,
+		u.rolename,
+		u.ustatus
+		FROM
+		user u
+		where 1=1
+		<choose>
+			<when test='status=="100"'>
+				and u.ustatus>=0
+			</when>
+			<otherwise>
+				and u.ustatus = #{status}
+			</otherwise>
+		</choose>
+		<if test="searchKey!=null">
+			and (u.uname like #{searchKey} or u.uphone like
+			#{searchKey} or u.umail like #{searchKey})
+		</if>
+		ORDER BY u.create_time desc
+	</select>
+
+	<select id="selectByUcodeOrUphoneOrUmail" parameterType="java.lang.String"
+		resultMap="BaseResultMap">
+		select * from user
+		where ucode=#{ucode} or uphone=#{ucode} or
+		umail=#{ucode}
+		limit 1
+	</select>
+
+	<select id="checkPhoneOrMail" resultType="Integer">
+		SELECT count(1) as
+		count
+		FROM
+		user u
+		where ( u.umail=#{mail}
+		<choose>
+			<when test="phone!=null and phone!=''">
+				or u.uphone=#{phone}
+			</when>
+		</choose>
+		)
+	</select>
+	<select id="selectUserInfoByUid" resultMap="BaseResultMap">
+		select
+		u.uid,
+		u.unumber,
+		u.ucode,
+		u.pwd,
+		u.uname,
+		u.area,
+		u.uphone,
+		u.umail,
+		u.position,
+		u.roleid,
+		u.rolename,
+		u.ustatus,
+		u.create_time,
+		u.create_id,
+		u.note
+		from
+		user u
+		where u.uid=#{uid} and u.ustatus>=0
+	</select>
+
+	<select id="selectUserNameByUid" resultType="String">
+		select u.uname from
+		user u where u.uid=#{uid}
+	</select>
+
+	<select id="selectMail" resultType="String">
+		select u.umail from user u
+		where u.umail=#{mail}
+	</select>
+	<select id="getSalseManagersList" resultType="com.plastech.crm.model.vo.SalesManagerView">
+		select
+		u.uid,u.uname as name from user u where u.ustatus=0 and u.roleid=2
+		ORDER BY convert(u.uname using gbk) asc
+	</select>
+</mapper>
